@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<head>
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self'">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trčanje</title>
+    <link rel="stylesheet" href="styles.css">
+    
+</head>
+<body>
+    <script src="./renderer.js"></script>
+    
+    <!-- CHART FRAMEWORK -->
+    <script
+    src="./Chart.js">
+    </script> 
+
+    <h1 class="kode-mono-600">Trčanje <span id="curr_time">time</span> <span id="msg"></span></h1>
+
+    <label for="distance" style="user-select: none;">Razdaljina:</label>
+    <input type="number" id="distance" name="distance" step="0.1" min="0" max="1000" placeholder="0.0">
+    
+    <label for="running_time" style="margin-left: 1.5rem; user-select: none;">Vreme:</label>
+    <input type="text" id="running_time" name="running_time" placeholder="hh:mm:ss">
+
+    <button id="enter_btn" type="button">&gt; Unesi &lt;</button>
+    <button id="undo_btn" type="button">&gt; Undo &lt;</button>
+
+    <div id="date_picker">
+        <label id="custom_date_label" for="custom_date" style="margin-left: 1.5rem">Nije bilo danas?</label>
+        <input class="grayIcon" type="date" id="custom_date" name="custom_date">
+    </div>
+
+    <div style="display: flex; overflow: hidden">
+        <div id="big_left" class="column">
+            <div id="container">
+                <div id="left" class="column">
+                </div>
+                <div id="right" class="column">
+                </div>
+            </div>
+        </div>
+        <div id="big_right" class="column">
+            <table>
+                <tr>
+                    <td class="text_column">Ukupno pretrčano: </td>
+                    <td class="data_column" id="total_ran"></td>
+                </tr>
+                <tr>
+                    <td class="text_column">Ukupno vremena uloženo: </td>
+                    <td class="data_column" id="total_time"></td>
+                </tr>
+                <tr>
+                    <td class="text_column">Najbrži tempo ikad: </td>
+                    <td class="data_column" id="fastest_pace_ever"></td>
+                </tr>
+                <tr>
+                    <td class="text_column">Pretrčano ove nedelje: </td>
+                    <td class="data_column" id="ran_this_week"></td>
+                </tr>
+                <tr>
+                    <td class="text_column">Najbrži tempo ove nedelje: </td>
+                    <td class="data_column" id="fastest_pace_this_week"></td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <div style="display: flex; margin-top: 2rem;">
+        <div id="left_chart" class="column">
+            <canvas id="myChart"></canvas> 
+        </div>
+        <div id="right_chart" class="column">
+            <div id="radioSelect"><div id="thisweek" class="selected">Ove nedelje</div><div id="weekly" class="unselected">Zad. 8 ned.</div><div id="monthly" class="unselected">Po mesecima</div></div>
+            <br>
+            <div id="timeDistanceSelect"><div class="selected2" id="distanceOption">Razdaljina</div><div class="unselected" id="timeOption">Vreme</div></div>
+
+            <select id="yearSelect" class="kode-mono-400"></select>
+        </div>
+    </div>
+</body>
+</html>

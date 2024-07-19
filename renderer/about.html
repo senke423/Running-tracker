@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<head>
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self'">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trčanje</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kode+Mono&display=swap" rel="stylesheet">
+</head>
+<body>
+
+
+    <h1 class="kode-mono-600">O programu</h1>
+
+    <p><em>Trčanje</em> je jednostavna aplikacija za praćenje napretka u trčanju, ličnih rekorda. Napravljena u Elektronu 16. jula 2024.</p>
+    <p>Korišćeni zvukovi:</p>
+    <ul>
+        <li>Zvuk za uspešan unos - "Menu Selection Click", freesound.org, Nenad Simic</li>
+        <li>Zvuk za grešku pri unosu - "button2.mp3", freesound.org, Camouflaged_Noob</li>
+        <li>Zvuk pri kliktanju - "tic.wav", freesound.org, Snapper4298</li>
+    </ul>    
+
+    <p>Za grafikon korišćen Chart.js (https://www.chartjs.org/).</p>
+
+    <br>
+
+    <p>Funkcionalnost:</p>
+    <ul>
+        <li>Aktivnosti mogu da se unesu ili uklone.</li>
+        <li>Moguće je izvesti podatke u tri različita formata: kao .sql fajl, kao .psv &lpar;pipe separated values&rpar; ili kao .json.</li>
+        <li>Moguće je listati kroz istoriju svih aktivnosti, i videti pređenu razdaljinu, tempo, i datum.</li>
+        <li>Moguće je videti PR-ove &lpar;lične rekorde&rpar;, i ručno dodati nove. PR-ovi se takođe dodaju automatski, ali samo u slučaju da je unesena razdaljina ±4% od neke PR razdaljine. &lpar;recimo, ako se unese 5.1 km, dodaće se novi PR za 5 K, u slučaju da je to dosad najbrže vreme; ali za 6 km neće.&rpar;</li>
+        <li>Aplikacija ima <em>light</em> i <em>dark</em> mod.</li>
+        <li>Moguće je videti presek pretrčane razdaljine/vremena provedenog trčeći i to po: danima tekuće nedelje, po nedeljama u izabranoj godini, i po mesecima u izabranoj godini.</li>
+    </ul>
+
+    <p>Napravio Lazar Senović.</p>
+</body>
+</html>

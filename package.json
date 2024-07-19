@@ -1,0 +1,16 @@
+{
+  "name": "45_trcanje_electron",
+  "version": "1.0.0",
+  "description": "Aplikacija za praćenje napretka u trčanju.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Lazar Senovic",
+  "license": "MIT",
+  "dependencies": {
+    "electron": "^31.2.1",
+    "sqlite3": "^5.1.7",
+    "toastify-js": "^1.12.0"
+  }
+}
