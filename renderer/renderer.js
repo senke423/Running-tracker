@@ -182,6 +182,8 @@ window.onload = async function() {
         setTimeout(function() {
             msg_element.innerText = '';
         }, 1000);
+       
+        // bla bla
 
         getRecentData().then(data => {
             activityHistoryData = data;
