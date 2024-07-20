@@ -15,9 +15,9 @@
     src="./Chart.js">
     </script> 
 
-    <h1 class="kode-mono-600">Trčanje <span id="curr_time">time</span> <span id="msg"></span></h1>
+    <h1 class="kode-mono-600 margin80">Trčanje <span id="curr_time">time</span> <span id="msg"></span></h1>
 
-    <label for="distance" style="user-select: none;">Razdaljina:</label>
+    <label class="margin80" for="distance" style="user-select: none;">Razdaljina:</label>
     <input type="number" id="distance" name="distance" step="0.1" min="0" max="1000" placeholder="0.0">
     
     <label for="running_time" style="margin-left: 1.5rem; user-select: none;">Vreme:</label>
@@ -31,7 +31,7 @@
         <input class="grayIcon" type="date" id="custom_date" name="custom_date">
     </div>
 
-    <div style="display: flex; overflow: hidden">
+    <div style="display: flex; overflow: hidden; margin-left: 65px;">
         <div id="big_left" class="column">
             <div id="container">
                 <div id="left" class="column">
@@ -66,7 +66,7 @@
         </div>
     </div>
 
-    <div style="display: flex; margin-top: 2rem;">
+    <div id="lower_container" class="margin80">
         <div id="left_chart" class="column">
             <canvas id="myChart"></canvas> 
         </div>

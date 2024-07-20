@@ -101,9 +101,12 @@ async function getRecentActivities() {
 let user_config;
 let user_config_path = path.join(__dirname, 'user_config.json');
 
+let selectedTimeframe;
+let selectedDistance;
+
 let last_id;
 
-function readFileAsync(){
+function readUserConfig(){
     return new Promise((resolve, reject) => {
         fs.readFile(user_config_path, 'utf8', (err, data) => {
             if (err){
@@ -114,6 +117,8 @@ function readFileAsync(){
             try {
                 user_config = JSON.parse(data);
                 dbPath = user_config.dbPath;
+                selectedTimeframe = user_config.selectedTimeframe;
+                selectedDistance = user_config.selectedDistance;
                 resolve();
                 
             } catch (err) {
@@ -127,7 +132,7 @@ function readFileAsync(){
 
 async function initDBConnection(){
 
-    await readFileAsync();
+    await readUserConfig();
 
     if (!fs.existsSync(dbPath)) {
         dialog.showMessageBox(mainWindow, {
@@ -237,6 +242,23 @@ async function initDBConnection(){
     }
 }
 
+function getUndoResponse(){
+    const query = "DELETE FROM activity WHERE activity_id = (SELECT activity_id FROM activity ORDER BY activity_id DESC LIMIT 1);";
+    db.run(query, function(err){
+        if (err) {
+            console.error('Error deleting activity: ', err.message);
+        } else {
+            if (last_id === 1){
+                console.log('Nothing left to delete.');
+            } else {
+                last_id--;
+                console.log(`Most recent entry deleted.`);
+            }
+        }
+    });
+
+    return last_id;
+}
 
 app.whenReady().then(() => {
     createMainWindow();
@@ -253,6 +275,20 @@ app.whenReady().then(() => {
 
     ipcMain.handle('get_recent_activities', getRecentActivities);
 
+    ipcMain.handle('get_pr_data', (event, ...args) => {
+        return [selectedTimeframe, selectedDistance];
+    });
+
+    ipcMain.handle('get-undo-response', getUndoResponse);
+
+    ipcMain.on('change-sel-timeframe', (event, data) => {
+        user_config.selectedTimeframe = data;
+    });
+
+    ipcMain.on('change-sel-distance', (event, data) => {
+        user_config.selectedDistance = data;
+    });
+
     ipcMain.on('newActivity', (event, data) => {
         let distance = parseFloat(data[0]);
         let time = parseInt(data[1]);
@@ -262,7 +298,6 @@ app.whenReady().then(() => {
         // let last_id = parseInt(data[3]);
         let pace = `${Math.floor((time/distance)/60).toString().padStart(2, '0')}:${Math.round((time/distance)%60).toString().padStart(2, '0')} /km`;
 
-        console.log('Neposredno: ' + last_id);
         const sql = "INSERT INTO activity(activity_id, activity_date, distance, activity_time, pace) VALUES(?, ?, ?, ?, ?);"
         db.run(sql, [last_id, date, distance, time, pace], function(err) {
             if (err) {
@@ -274,17 +309,17 @@ app.whenReady().then(() => {
         });
     });
 
-    ipcMain.on('undoActivity', () => {
-        const query = "DELETE FROM activity WHERE activity_id = (SELECT activity_id FROM activity ORDER BY activity_id DESC LIMIT 1);";
-        db.run(query, function(err){
-            if (err) {
-                console.error('Error deleting activity: ', err.message);
-            } else {
-                last_id--;
-                console.log(`Last entry deleted.`);
-            }
-        });
-    });
+    // ipcMain.on('undoActivity', () => {
+    //     const query = "DELETE FROM activity WHERE activity_id = (SELECT activity_id FROM activity ORDER BY activity_id DESC LIMIT 1);";
+    //     db.run(query, function(err){
+    //         if (err) {
+    //             console.error('Error deleting activity: ', err.message);
+    //         } else {
+    //             last_id--;
+    //             console.log(`Last entry deleted.`);
+    //         }
+    //     });
+    // });
 
     ipcMain.on('returnFocus', () => {
         mainWindow.focus();
@@ -292,9 +327,18 @@ app.whenReady().then(() => {
 });
 
 app.on('before-quit', () => {
+
     if (db){
         db.close();
     }
+
+    fs.writeFile(user_config_path, JSON.stringify(user_config, null, 2), 'utf8', (err) => {
+        if (err) {
+            console.error('Error saving user config:', err);
+        } else {
+            console.log('User config saved successfully.');
+        }
+    });
 });
 
 app.on('window-all-closed', () => {

@@ -17,8 +17,8 @@ const click_sound = new Audio('./assets/sounds/click.ogg');
 
 let combo_box;
 
-let selected_timeframe = 1;
-let selected_distance = true;
+let selected_timeframe;
+let selected_distance;
 
 let thisMonday;
 let thisSunday;
@@ -54,13 +54,20 @@ let chart_data = {
     }
 };
 
+let option_this_week;
+let option_weekly;
+let option_monthly;
+let option_distance;
+let option_time;
+
+
 window.onload = async function() {
 
-    const option_this_week = document.getElementById('thisweek');
-    const option_weekly = document.getElementById('weekly');
-    const option_monthly = document.getElementById('monthly');
-    const option_distance = document.getElementById('distanceOption');
-    const option_time = document.getElementById('timeOption');
+    option_this_week = document.getElementById('thisweek');
+    option_weekly = document.getElementById('weekly');
+    option_monthly = document.getElementById('monthly');
+    option_distance = document.getElementById('distanceOption');
+    option_time = document.getElementById('timeOption');
     combo_box = document.getElementById('yearSelect');
 
     running_chart = new Chart("myChart", {
@@ -212,6 +219,7 @@ window.onload = async function() {
             option_monthly.classList = 'unselected';
             combo_box.disabled = true;
             selected_timeframe = 1;
+            window.ipcRenderer.send('change-sel-timeframe', selected_timeframe);
             playClickSound();
             refreshChart();
         }
@@ -224,6 +232,7 @@ window.onload = async function() {
             option_monthly.classList = 'unselected';
             combo_box.disabled = true;
             selected_timeframe = 2;
+            window.ipcRenderer.send('change-sel-timeframe', selected_timeframe);
             playClickSound();
             refreshChart();
         }
@@ -236,6 +245,7 @@ window.onload = async function() {
             option_monthly.classList = 'selected';
             combo_box.disabled = false;
             selected_timeframe = 3;
+            window.ipcRenderer.send('change-sel-timeframe', selected_timeframe);
             playClickSound();
             refreshChart();
         }
@@ -246,6 +256,7 @@ window.onload = async function() {
             option_distance.classList = 'selected2';
             option_time.classList = 'unselected';
             selected_distance = true;
+            window.ipcRenderer.send('change-sel-distance', selected_distance);
             playClickSound();
             refreshChart();
         }
@@ -256,6 +267,7 @@ window.onload = async function() {
             option_distance.classList = 'unselected';
             option_time.classList = 'selected2';
             selected_distance = false;
+            window.ipcRenderer.send('change-sel-distance', selected_distance);
             playClickSound();
             refreshChart();
         }
@@ -267,13 +279,25 @@ window.onload = async function() {
         
         if (result){
             playSuccessSound();
-            window.ipcRenderer.send('undoActivity');
+
+            let ret;
+            getUndoResponse()
+                .then(response => {
+                    ret = response;
+                })
+                .catch(error => {
+                    console.error('Unexpected error. renderer.js -> window.onload');
+                })
 
             getRecentData().then(data => {
                 let msg_element = document.getElementById('msg');
                 msg_element.className = '';
                 msg_element.classList.add('orangeText');
-                msg_element.innerText = 'Izbrisan zadnji unos.';
+                if (ret === 1){
+                    msg_element.innerText = 'Nema podataka za brisanje.';
+                } else {
+                    msg_element.innerText = 'Izbrisan poslednji unos.';
+                }
 
                 setTimeout(function() {
                     msg_element.innerText = '';
@@ -302,6 +326,8 @@ window.onload = async function() {
     thisMonday = findThisMonday();
     thisSunday = findThisSunday();
 
+    PR_data = await getPRdata();
+    initChartOptions();
     activityHistoryData = await getRecentData();
 
     let iter_len = activityHistoryData.length;
@@ -318,6 +344,49 @@ window.onload = async function() {
 
     refreshTabs();
 
+}
+
+function initChartOptions(){
+    selected_timeframe = PR_data[0];
+    selected_distance = PR_data[1];
+
+    switch (selected_timeframe){
+        case 1:
+            option_this_week.classList = 'selected';
+            option_weekly.classList = 'unselected';
+            option_monthly.classList = 'unselected';
+            combo_box.disabled = true;
+            break;
+        case 2:
+            option_this_week.classList = 'unselected';
+            option_weekly.classList = 'selected';
+            option_monthly.classList = 'unselected';
+            combo_box.disabled = true;
+            break;
+        case 3:
+            option_this_week.classList = 'unselected';
+            option_weekly.classList = 'unselected';
+            option_monthly.classList = 'selected';
+            combo_box.disabled = false;
+            break;
+        default:
+            console.error('Unexpected error! renderer.js > initChartOptions() > switch1');
+    }
+    switch (selected_distance){
+        case true:
+            
+            option_distance.classList = 'selected2';
+            option_time.classList = 'unselected';
+            selected_distance = true;
+            break;
+        case false:
+            option_distance.classList = 'unselected';
+            option_time.classList = 'selected2';
+            selected_distance = false;
+            break;
+        default:
+            console.error('Unexpected error! renderer.js > initChartOptions > switch2');
+    }
 }
 
 function clearInputs(){
@@ -366,6 +435,28 @@ function populateComboBox(){
         temp.value = parseInt(year);
         yearSelect.appendChild(temp);
     }
+}
+
+function findThisMondayDate(){
+    let now = new Date();
+
+    // 0 is Sunday, 1 is Monday
+    while (now.getDay() !== 1){
+        now.setDate(now.getDate() - 1);
+    }
+
+    return now;
+}
+
+function findThisSundayDate(){
+    let now = new Date();
+
+    // 0 is Sunday, 1 is Monday
+    while (now.getDay() !== 0){
+        now.setDate(now.getDate() + 1);
+    }
+
+    return now;
 }
 
 function findThisMonday(){
@@ -467,6 +558,8 @@ function insert_chronologically(array, sibling, date){
 function addChartData(row){
     // most recent date will be passed as an argument first
     // least recent date will be last
+
+    // this week
     if (row.activity_date >= thisMonday && row.activity_date <= thisSunday){
         if (!chart_data.distance_data.this_week.x.includes(row.activity_date)){
             let index;
@@ -483,6 +576,10 @@ function addChartData(row){
             chart_data.time_data.this_week.y[index] += Math.round(row.activity_time/60); // minutes
         }
     }
+
+    // past 8 weeks
+
+    // past 12 months
 }
 
 function clearChartData(){
@@ -518,11 +615,49 @@ function clearChartData(){
     };
 }
 
+function dateToString(date){
+    return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
+}
+
 function refreshChart(){
+    // Show days of week instead of dates if 'This week' option is selected
+    let now = new Date();
+    
+    // 0 is Sunday, 1 is Monday, 6 is Saturday
+    let curr_day = now.getDay();
+    // switch it to my system, where 1 is Monday, 7 is Sunday
+    curr_day = (curr_day + 6) % 7 + 1;
+
+
+    let date_iterator = new Date();
+
+    // 0 is Sunday, 1 is Monday
+    while (date_iterator.getDay() !== 1){
+        date_iterator.setDate(date_iterator.getDate() - 1);
+    }
+
+    let y_vals_aux = {};
+    let x_markings = [];
+    for (let i = 0; i < curr_day; i++){
+        y_vals_aux[dateToString(date_iterator)] = 0;
+        date_iterator.setDate(date_iterator.getDate() + 1);
+        x_markings.push(days_of_week[i]);
+    }
+
+
     if (selected_distance){
+        running_chart.options.title.text = `Razdaljina [km]`;
         if (selected_timeframe === 1){
-            xVals = chart_data.distance_data.this_week.x;
-            yVals = chart_data.distance_data.this_week.y;
+            let i;
+            for (i = 0; i < chart_data.distance_data.this_week.y.length; i++){
+                y_vals_aux[chart_data.distance_data.this_week.x[i]] += chart_data.distance_data.this_week.y[i];
+            }
+            yVals = [];
+            for (let key in y_vals_aux){
+                yVals.push(y_vals_aux[key]);
+            }
+
+            xVals = x_markings;
         }
         else if (selected_timeframe === 2){
             xVals = chart_data.distance_data.weekly.x;
@@ -533,9 +668,18 @@ function refreshChart(){
             yVals = chart_data.distance_data.monthly.y;
         }
     } else {
+        running_chart.options.title.text = `Vreme [min]`;
         if (selected_timeframe === 1){
-            xVals = chart_data.time_data.this_week.x;
-            yVals = chart_data.time_data.this_week.y;
+            let i;
+            for (i = 0; i < chart_data.time_data.this_week.y.length; i++){
+                y_vals_aux[chart_data.time_data.this_week.x[i]] += chart_data.time_data.this_week.y[i];
+            }
+            yVals = [];
+            for (let key in y_vals_aux){
+                yVals.push(y_vals_aux[key]);
+            }
+
+            xVals = x_markings;
         }
         else if (selected_timeframe === 2){
             xVals = chart_data.time_data.weekly.x;
@@ -615,4 +759,12 @@ function updateTime(){
 
 async function getRecentData(){
     return window.ipcRenderer.getRecentActivities();
+}
+
+async function getPRdata(){
+    return window.ipcRenderer.getPRdata();
+}
+
+async function getUndoResponse(){
+    return window.ipcRenderer.getUndoResponse();
 }
