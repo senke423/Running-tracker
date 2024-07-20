@@ -11,5 +11,6 @@ A simple cross-platform Electron app for tracking activities and personal record
 
 ## Dependencies
 
-* To run the project, the following dependencies need to be installed:
+To run the project, the following dependencies need to be installed:
+
 `$ npm i electron sqlite3`
