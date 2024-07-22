@@ -31,7 +31,7 @@ let chart_data = {
         },
         "weekly": {
             "x": [],
-            "y": []
+            "y": [0, 0, 0, 0, 0, 0, 0, 0]
         },
         "monthly": {
             "x": [],
@@ -45,7 +45,7 @@ let chart_data = {
         },
         "weekly": {
             "x": [],
-            "y": []
+            "y": [0, 0, 0, 0, 0, 0, 0, 0]
         },
         "monthly": {
             "x": [],
@@ -60,6 +60,44 @@ let option_monthly;
 let option_distance;
 let option_time;
 
+let monday_8_weeks_ago;
+let last_sunday;
+let past_8_weeks_periods = {
+    1: {
+        'monday': '',
+        'sunday': ''
+    },
+    2: {
+        'monday': '',
+        'sunday': ''
+    },
+    3: {
+        'monday': '',
+        'sunday': ''
+    },
+    4: {
+        'monday': '',
+        'sunday': ''
+    },
+    5: {
+        'monday': '',
+        'sunday': ''
+    },
+    6: {
+        'monday': '',
+        'sunday': ''
+    },
+    7: {
+        'monday': '',
+        'sunday': ''
+    },
+    8: {
+        'monday': '',
+        'sunday': ''
+    }
+};
+
+let selected_year;
 
 window.onload = async function() {
 
@@ -69,6 +107,24 @@ window.onload = async function() {
     option_distance = document.getElementById('distanceOption');
     option_time = document.getElementById('timeOption');
     combo_box = document.getElementById('yearSelect');
+
+    // monday_8_weeks_ago is global because it's used in updateChart
+    monday_8_weeks_ago = findThisMondayDate();
+    monday_8_weeks_ago.setDate(monday_8_weeks_ago.getDate() - 8*7);
+    monday_8_weeks_ago = dateToString(monday_8_weeks_ago);
+    last_sunday = findThisMondayDate();
+    last_sunday.setDate(last_sunday.getDate() - 1);
+    last_sunday = dateToString(last_sunday);
+
+    for (let i = 8; i > 0; i--){
+
+        let mon_temp = findThisMondayDate();
+        let sun_temp = findThisSundayDate();
+        mon_temp.setDate(mon_temp.getDate() - 7*i);
+        sun_temp.setDate(sun_temp.getDate() - 7*i);
+        past_8_weeks_periods[9 - i].monday = dateToString(mon_temp);
+        past_8_weeks_periods[9 - i].sunday = dateToString(sun_temp);
+    }
 
     running_chart = new Chart("myChart", {
         type: "bar",
@@ -578,6 +634,15 @@ function addChartData(row){
     }
 
     // past 8 weeks
+    if (row.activity_date >= monday_8_weeks_ago && row.activity_date <= last_sunday){
+        for (let i = 1; i <= 8; i++){
+            if (row.activity_date >= past_8_weeks_periods[i].monday && row.activity_date <= past_8_weeks_periods[i].sunday){
+                chart_data.distance_data.weekly.y[i - 1] += row.distance; 
+                chart_data.time_data.weekly.y[i - 1] += Math.round(row.activity_time/60);
+                break;
+            }
+        }
+    }
 
     // past 12 months
 }
@@ -591,7 +656,7 @@ function clearChartData(){
             },
             "weekly": {
                 "x": [],
-                "y": []
+                "y": [0, 0, 0, 0, 0, 0, 0, 0]
             },
             "monthly": {
                 "x": [],
@@ -605,7 +670,7 @@ function clearChartData(){
             },
             "weekly": {
                 "x": [],
-                "y": []
+                "y": [0, 0, 0, 0, 0, 0, 0, 0]
             },
             "monthly": {
                 "x": [],
@@ -660,7 +725,12 @@ function refreshChart(){
             xVals = x_markings;
         }
         else if (selected_timeframe === 2){
-            xVals = chart_data.distance_data.weekly.x;
+            x_markings = [];
+            for (let i = -8; i < 0; i++){
+                x_markings.push(i.toString() + ' ned.');
+            }
+
+            xVals = x_markings;
             yVals = chart_data.distance_data.weekly.y;
         }
         else if (selected_timeframe === 3){
@@ -682,7 +752,12 @@ function refreshChart(){
             xVals = x_markings;
         }
         else if (selected_timeframe === 2){
-            xVals = chart_data.time_data.weekly.x;
+            x_markings = [];
+            for (let i = -8; i < 0; i++){
+                x_markings.push(i.toString() + ' ned.');
+            }
+
+            xVals = x_markings;
             yVals = chart_data.time_data.weekly.y;
         }
         else if (selected_timeframe === 3){
@@ -749,7 +824,6 @@ function refreshLeftTab(){
     }
 
     last_id = counter;
-    
 }
 
 function updateTime(){

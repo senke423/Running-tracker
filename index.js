@@ -2,6 +2,7 @@ const path = require('path');
 const { app, BrowserWindow, Menu, ipcMain, dialog } = require('electron/main');
 const sqlite3 = require('sqlite3');
 const fs = require('fs');
+const os = require('os');
 
 let dbPath = null;
 let db;
@@ -17,19 +18,23 @@ const menu = [
                 submenu: [
                     {
                         label: 'Kao .json',
+                        click: () => exportData(1)
                     },
                     {
-                        label: 'Kao .psv'
+                        label: 'Kao .psv',
+                        click: () => exportData(2)
                     },
                     {
-                        label: 'Kao .sqlite'
+                        label: 'Kao .sqlite',
+                        click: () => exportData(3)
                     }
                 ]
             }
         ]
     },
     {
-        label: 'Dark mode'
+        label: 'Dark mode',
+        click: switchDisplayMode
     },
     {
         label: 'O programu',
@@ -47,14 +52,54 @@ const nonMainMenu = [
 const mainMenu = Menu.buildFromTemplate(menu);
 const otherMenu = Menu.buildFromTemplate(nonMainMenu);
 
-function backToMainMenu(){
+function exportData(option){
+    let desktop_path = path.join(os.homedir(), 'Desktop');
+    let unix_time = Math.floor(Date.now() / 1000);
+    switch (option){
+        case 1:
+            // JSON
+            desktop_path = path.join(desktop_path, 'trcanje_export_' + unix_time.toString() + '.json');
+            break;
+        case 2:
+            // PSV
+            desktop_path = path.join(desktop_path, 'trcanje_export_' + unix_time.toString() + '.psv');
+            break;
+        case 3:
+            // SQLITE
+            desktop_path = path.join(desktop_path, 'trcanje_export_' + unix_time.toString() + '.sqlite3');
+            fs.copyFile(dbPath, desktop_path, (err) => {
+                if (err) {
+                    console.error('Error copying file:', err);
+                } else {
+                    dialog.showMessageBox(mainWindow, {
+                        type: 'info',
+                        buttons: ['OK'],
+                        defaultId: 0,
+                        title: 'Uspešno',
+                        message: 'Uspešno napravljena rezervna kopija',
+                        detail: `Kopiran fajl ${dbPath} na lokaciju ${desktop_path}.`
+                    });
+                }
+            });
+            break;
+    }
+    console.log(desktop_path);
+}
+
+async function backToMainMenu(){
+    console.log(user_config);
+    console.log(user_config_path);
     console.log('Returned.');
 
     Menu.setApplicationMenu(mainMenu);
     mainWindow.loadFile(path.join(__dirname, './renderer/renderer.html'));
 }
 
+function switchDisplayMode(){
+}
+
 function openAboutPage(){
+
     console.log('Opened about page.');
 
     Menu.setApplicationMenu(otherMenu);
@@ -308,18 +353,6 @@ app.whenReady().then(() => {
             }
         });
     });
-
-    // ipcMain.on('undoActivity', () => {
-    //     const query = "DELETE FROM activity WHERE activity_id = (SELECT activity_id FROM activity ORDER BY activity_id DESC LIMIT 1);";
-    //     db.run(query, function(err){
-    //         if (err) {
-    //             console.error('Error deleting activity: ', err.message);
-    //         } else {
-    //             last_id--;
-    //             console.log(`Last entry deleted.`);
-    //         }
-    //     });
-    // });
 
     ipcMain.on('returnFocus', () => {
         mainWindow.focus();
