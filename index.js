@@ -344,54 +344,71 @@ function getUndoResponse(){
     return last_id;
 }
 
-async function getRecordData(sql, params){
-    return new Promise((resolve, reject) => {
-        db.get(sql, params, (err, row) => {
-            if (err) {
-                return reject(err);
-            }
-            resolve(row);
-        });
-    });
-}
-
-async function getPRdata(){
+async function get_PR_cat_data(){
     return new Promise((resolve, reject) => {
         db.all('SELECT * FROM pr_category', (err, data) => {
             if (err) {
                 console.error('Error running query: ', err);
                 reject(err);
             }
+            resolve(data);
+        });
+    });
+}
 
-            let pr_categories = data;
-            let formatted = [];
-
-            let number_of_categories = pr_categories[pr_categories.length - 1].pr_cat_id;
-            let sql = `SELECT * FROM personal_record WHERE pr_cat_id = ? ORDER BY pr_time ASC LIMIT 1`;
-            
-            try {
-                for (let i = 0; i < number_of_categories; i++){
-
-                    let temp_el = {
-                        'cat_name': '',
-                        'time': '',
-                        'pace': ''
-                    };
-                    formatted.push(temp_el);
-
-                    // let data = await getRecordData(sql, [i]);
-                }
-            } catch (err){
-                console.error(err);
+async function get_query_data(sql, params){
+    return new Promise((resolve, reject) => {
+        db.all(sql, params, (err, rows) => {
+            if (err){
                 reject(err);
             }
 
-            console.log('FINAL LOOK:');
-            console.log(formatted);
-            resolve(formatted);
-            
+            resolve(rows);
         });
     });
+}
+
+async function getPRdata(){
+    let pr_cat_data = await get_PR_cat_data();
+    let pr_cat_len = pr_cat_data[pr_cat_data.length - 1].pr_cat_id;
+
+    console.log(pr_cat_len);
+
+    let formatted = [];
+    let sql = `SELECT * FROM personal_record WHERE pr_cat_id = ? ORDER BY pr_time ASC LIMIT 1`;
+    
+    for (let i = 0; i < pr_cat_len; i++){
+
+        let temp_el = {
+            'cat_name': '',
+            'time': '',
+            'pace': ''
+        };
+
+        let row = await get_query_data(sql, [i]);
+        row = row[0];
+
+        if (row === undefined){
+            temp_el.cat_name = pr_cat_data[i];
+            temp_el.time = 'n/a';
+            temp_el.pace = 'n/a';
+        } else {
+            let formatted_time = '';
+            if (row.pr_time < 3600){
+                formatted_time = `${Math.round(row.pr_time/60).toString().padStart(1, '0')}:${(row.pr_time%60).toString().padStart(2, '0')}`;
+            } else {
+                formatted_time = `${Math.round(row.pr_time/3600).toString().padStart(1, '0')}:${Math.round((row.pr_time%3600)/60).toString().padStart(2, '0')}:${(row.pr_time%60).toString().padStart(2, '0')}`;
+            }
+
+            temp_el.cat_name = pr_cat_data[i];
+            temp_el.time = formatted_time;
+            temp_el.pace = row.pace;
+        }
+        
+        formatted.push(temp_el);
+    }
+
+    return formatted;
 }
 
 async function initApp(){

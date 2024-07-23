@@ -464,7 +464,6 @@ function initChartOptions(){
     }
     switch (selected_distance){
         case true:
-            
             option_distance.classList = 'selected2';
             option_time.classList = 'unselected';
             selected_distance = true;
@@ -830,6 +829,14 @@ function refreshChart(){
 function refreshRightTab(){
     let rightPanel = document.getElementById('right');
     rightPanel.innerHTML = '<p style="margin-top: 0">PR-ovi:</p>';
+    
+    rightPanel.appendChild();
+
+    let iter_len = pr_data.length;
+    for (let i = 0; i < iter_len; i++){
+        let row = pr_data[i];
+        
+    }
 }
 
 function refreshLeftTab(){
