@@ -826,17 +826,35 @@ function refreshChart(){
     running_chart.update();
 }
 
+let html_table;
+
+function addRow(columns){
+    const table_row = document.createElement('tr');
+    table_row.id = 'pr_row';
+    for (let i = 0; i < 3; i++){
+        const cell = document.createElement('td');
+        cell.textContent = columns[i];
+        cell.id = `pr_cell${i + 1}`;
+        table_row.appendChild(cell);
+    }
+    html_table.appendChild(table_row);
+}
+
 function refreshRightTab(){
     let rightPanel = document.getElementById('right');
     rightPanel.innerHTML = '<p style="margin-top: 0">PR-ovi:</p>';
     
-    rightPanel.appendChild();
+    html_table = document.createElement('table');
+    html_table.id = 'pr_table';
 
     let iter_len = pr_data.length;
     for (let i = 0; i < iter_len; i++){
         let row = pr_data[i];
-        
+        addRow([row.cat_data.pr_cat_desc, row.time, row.pace]);
     }
+
+    rightPanel.appendChild(html_table);
+
 }
 
 function refreshLeftTab(){

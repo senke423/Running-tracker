@@ -202,8 +202,6 @@ async function initDBConnection(){
             dialog.showOpenDialog(mainWindow, {
                 properties: ['openFile', 'openDirectory']
             }).then(result => {
-                console.log('DIR ENTERED!\n');
-
                 // DIRECTORY ENTERED
                 dbPath = path.join(result.filePaths[0], 'trcanje.sqlite3');
                 user_config.dbPath = dbPath;
@@ -372,24 +370,22 @@ async function getPRdata(){
     let pr_cat_data = await get_PR_cat_data();
     let pr_cat_len = pr_cat_data[pr_cat_data.length - 1].pr_cat_id;
 
-    console.log(pr_cat_len);
-
     let formatted = [];
     let sql = `SELECT * FROM personal_record WHERE pr_cat_id = ? ORDER BY pr_time ASC LIMIT 1`;
     
     for (let i = 0; i < pr_cat_len; i++){
 
         let temp_el = {
-            'cat_name': '',
+            'cat_data': '',
             'time': '',
             'pace': ''
         };
 
-        let row = await get_query_data(sql, [i]);
+        let row = await get_query_data(sql, [pr_cat_data[i].pr_cat_id]);
         row = row[0];
 
         if (row === undefined){
-            temp_el.cat_name = pr_cat_data[i];
+            temp_el.cat_data = pr_cat_data[i];
             temp_el.time = 'n/a';
             temp_el.pace = 'n/a';
         } else {
@@ -400,9 +396,11 @@ async function getPRdata(){
                 formatted_time = `${Math.round(row.pr_time/3600).toString().padStart(1, '0')}:${Math.round((row.pr_time%3600)/60).toString().padStart(2, '0')}:${(row.pr_time%60).toString().padStart(2, '0')}`;
             }
 
-            temp_el.cat_name = pr_cat_data[i];
+            let formatted_pace = row.pr_pace[0] === '0' ? row.pr_pace.slice(1) : row.pr_pace;
+
+            temp_el.cat_data = pr_cat_data[i];
             temp_el.time = formatted_time;
-            temp_el.pace = row.pace;
+            temp_el.pace = formatted_pace;
         }
         
         formatted.push(temp_el);
