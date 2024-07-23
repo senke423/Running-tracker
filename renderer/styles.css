@@ -44,6 +44,7 @@ h1 {
     user-select: none;
 }
 
+
 #curr_time {
     color: rgb(219, 219, 219);
     user-select: none;
@@ -238,9 +239,13 @@ td {
     font-size: 9pt;
     margin-top: 25px;
     width: 100px;
-    padding: 5px;
+    padding: 10px;
+    border: none;
 }
 
+#yearSelect:focus {
+    outline: 2px solid white;
+}
 
 #radioSelect {
     background-color: #f7f7f7;
@@ -268,9 +273,14 @@ select {
     text-align: center;
 }
 
+input {
+    padding: 8px;
+    border: none;
+}
+
 .unselected {
     font-weight: 400;
-    color: black;
+    color: rgb(114, 114, 114);
     background-color: #ffffff00;
 }
 
@@ -304,5 +314,5 @@ select {
 
 /* Handle */
 ::-webkit-scrollbar-thumb {
-    background: #acacac;
+    background: #919191;
 }

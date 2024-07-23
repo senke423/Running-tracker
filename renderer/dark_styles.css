@@ -1,255 +1,343 @@
+@font-face {
+    font-family: "Kode Mono 400";
+    font-weight: 400;
+    src: url('./assets/fonts/KodeMono-Regular.woff2');
+}
+
+@font-face {
+    font-family: "Kode Mono 600";
+    font-weight: 600;
+    src: url('./assets/fonts/KodeMono-Medium.woff2');
+}
+
 .kode-mono-600 {
-    font-family: "Kode Mono", monospace;
+  font-family: "Kode Mono 600", monospace;
+  font-optical-sizing: auto;
+  font-weight: 600;
+  font-style: normal;
+}
+
+.kode-mono-400 {
+    font-family: "Kode Mono 400", monospace;
+    font-optical-sizing: auto;
+    font-weight: 400;
+    font-style: normal;
+}
+
+body {
+    margin-top: 3rem;
+    /* margin-left: 80px; */
+    margin-right: 5rem;
+    font-family: "Kode Mono 400", monospace;
+    font-optical-sizing: auto;
+    font-weight: 400;
+    font-style: normal;
+    user-select: none;
+    background-color: #181818;
+}
+
+.margin80 {
+    margin-left: 80px;
+}
+
+h1 {
+    font-size: 30pt;
+    user-select: none;
+    color: white;
+}
+
+#curr_time {
+    color: rgb(63, 63, 63);
+    user-select: none;
+}
+
+label {
+    color: white;
+}
+
+input {
+    background-color: #181818;
+    color: white;
+    border: none;
+    padding: 8px;
+    outline: none;
+}
+
+input:focus {
+    outline: 2px solid white;
+}
+
+#distance, #running_time, #custom_date {
+    font-family: "Kode Mono 400", monospace;
+    font-optical-sizing: auto;
+    font-weight: 400;
+    font-style: normal;
+    text-align: right;
+    user-select: all;
+}
+
+#running_time {
+    width: 6rem;
+    margin-right: 1.5rem;
+}
+
+#undo_btn {
+    margin-left: 1rem;
+}
+
+#enter_btn, #undo_btn {
+    font-family: "Kode Mono 400", monospace;
+    font-optical-sizing: auto;
+    font-weight: 400;
+    font-style: normal;
+    text-align: center;
+    background-color: rgb(0, 61, 61);
+    color: aqua;
+}
+
+#enter_btn, #undo_btn {
+    border: 1px solid rgba(0, 255, 255, 0);
+    height: 2rem;
+}
+
+#enter_btn:hover, #undo_btn:hover {
+    border: 1px solid aqua;
+}
+
+#enter_btn:active {
+    background-color: rgb(178, 252, 178);
+    color: rgb(0, 36, 0);
+    border: 1px solid rgb(0, 36, 0);
+}
+
+#undo_btn:active {
+    background-color: rgb(252, 178, 178);
+    color: darkred;
+    border: 1px solid darkred;
+}
+
+
+#myChart {
+    padding: 15px;
+    border-radius: 15px;
+    box-shadow: 0 0 20px #000000;
+    background-color: rgb(40, 40, 40);
+}
+
+
+#date_picker {
+    display: inline;
+    padding: 20px 80px 20px 10px;
+}
+
+#last_activity {
+    color: rgb(187, 187, 187);
+    margin-top: 2.5rem;
+}
+
+#last_act_dist {
+    color: black;
+    font-family: "Kode Mono 600", monospace;
     font-optical-sizing: auto;
     font-weight: 600;
     font-style: normal;
-  }
+}
+
+#last_act_date {
+    color: rgb(95, 95, 95);
+}
+
+#custom_date {
+    border: none;
+}
+
+.grayIcon::-webkit-calendar-picker-indicator {
+    filter: invert(20%);
+}
+
+.blackIcon::-webkit-calendar-picker-indicator {
+    filter: invert(100%);
+}
+
+.greenText {
+    color: rgb(29, 192, 29);
+}
+
+.redText {
+    color: rgb(255, 121, 121);
+}
+
+.orangeText {
+    color: orange;
+}
+
+#custom_date, #custom_date_label {
+    color: #333333;
+}
+
+#container {
+    margin-top: 20px;
+    margin-bottom: 10px;
+    margin-left: 15px;
+    background-color: rgb(40, 40, 40);
+    border-radius: 15px;
+    display: flex;
+    overflow: visible;
+    width: 100%;
+    height: 230px;
+   
+    box-shadow: 0 0 20px #000000;
+}
+
+.column {
+    float: left;
+}
+
+.data_column {
+    text-align: right;
+    color: white;
+}
+
+.text_column {
+    color: gray;
+}
+
+table {
+    width: 100%;
+}
+
+td {
+    padding-bottom: 15px;
+}
+
+#big_left {
+    width: 72.5%;
+    margin-right: 15px;
+}
+
+#big_right {
+    width: 25%;
+    font-size: 9pt;
+    margin-top: 35px;
+    margin-left: 30px;
+}
+
+#left, #right {
+    margin-top: 1.5%;
+    margin-bottom: 1.5%;
+    padding: 1.5%;
+}
+
+#left {
+    width: 50%;
+    margin-left: 1.5%;
+    margin-right: 1.5%;
+    overflow-y: scroll;
+}
+
+#right {
+    width: 50%;
+    margin-right: 1.5%;
+    overflow-y: scroll;
+}
+
+#left_chart {
+    width: 70%;
+    padding-right: 5%;
+}
+
+#right_chart {
+    font-size: 9pt;
+    padding-top: 2.5%;
+    width: 25%;
+}
+
+#lower_container {
+    display: flex; 
+    margin-top: 1rem;
+    height: 440px;
+}
+
+
+#yearSelect {
+    font-size: 9pt;
+    margin-top: 25px;
+    width: 100px;
+    color: rgb(218, 218, 218);
+    padding: 10px;
+    background-color: #252525;
+    border: none;
+}
+
+#yearSelect:focus {
+    outline: 2px solid white;
+}
+
+#radioSelect {
+    background-color: #2b2b2b;
+    border-radius: 10px;
+    width: 100%;
+    display: flex;
+}
+
+#timeDistanceSelect {
+    background-color: #2b2b2b;
+    border-radius: 10px;
+    width: 100%;
+    display: flex;
+}
+
+#thisweek, #weekly, #monthly, #distanceOption, #timeOption {
+    padding: 10px 0px 10px 0px;
+    border-radius: 10px;
+    width: 100%;
+    text-align: center;
+    float: left;
+}
+
+select {
+    text-align: center;
+}
+
+p, li {
+    color:rgb(211, 211, 211);
+}
+
+.unselected {
+    font-weight: 400;
+    color: rgb(161, 161, 161);
+    background-color: #ffffff00;
+}
+
+.unselected:hover {
+    font-weight: 400;
+    text-decoration: underline;
+    color: rgb(255, 255, 255);
+    cursor: pointer;
+}
+
+.selected {
+    background-color: rgb(50, 42, 99);
+    color: white;
+    font-weight: 600;
+}
+
+.selected2 {
+    background-color: rgb(139, 46, 139);
+    color: white;
+    font-weight: 600;
+}
+
+::-webkit-scrollbar {
+    width: 1px;
+}
   
-  .kode-mono-400 {
-      font-family: "Kode Mono", monospace;
-      font-optical-sizing: auto;
-      font-weight: 400;
-      font-style: normal;
-  }
-  
-  body {
-      margin-top: 3rem;
-      margin-left: 5rem;
-      margin-right: 5rem;
-      font-family: "Kode Mono", monospace;
-      font-optical-sizing: auto;
-      font-weight: 400;
-      font-style: normal;
-      user-select: none;
-  }
-  
-  h1 {
-      font-size: 30pt;
-      user-select: none;
-  }
-  
-  #curr_time {
-      color: rgb(219, 219, 219);
-      user-select: none;
-  }
-  
-  #distance, #running_time, #custom_date {
-      font-family: "Kode Mono", monospace;
-      font-optical-sizing: auto;
-      font-weight: 400;
-      font-style: normal;
-      text-align: right;
-  }
-  
-  #running_time {
-      width: 6rem;
-      margin-right: 1.5rem;
-  }
-  
-  #undo_btn {
-      margin-left: 1rem;
-  }
-  
-  #enter_btn, #undo_btn {
-      font-family: "Kode Mono", monospace;
-      font-optical-sizing: auto;
-      font-weight: 400;
-      font-style: normal;
-      text-align: center;
-  }
-  
-  #enter_btn, #undo_btn {
-      border: 1px solid rgba(255, 255, 255, 0);
-      height: 2rem;
-  }
-  
-  #enter_btn:hover, #undo_btn:hover {
-      border: 1px solid black;
-  }
-  
-  #enter_btn:active {
-      background-color: rgb(178, 252, 178);
-  }
-  
-  #undo_btn:active {
-      background-color: rgb(252, 178, 178);
-  }
-  
-  
-  #myChart {
-      width: 100%;
-      height: 380px;
-      padding: 15px;
-      border-radius: 15px;
-      box-shadow: 0 0 20px #e9e9e9;
-  }
-  
-  
-  #date_picker {
-      display: inline;
-      padding: 20px 80px 20px 10px;
-  }
-  
-  #last_activity {
-      color: rgb(187, 187, 187);
-      margin-top: 2.5rem;
-  }
-  
-  #last_act_dist {
-      color: black;
-      font-family: "Kode Mono", monospace;
-      font-optical-sizing: auto;
-      font-weight: 600;
-      font-style: normal;
-  }
-  
-  #last_act_date {
-      color: rgb(95, 95, 95);
-  }
-  
-  #custom_date {
-      border: none;
-  }
-  
-  .grayIcon::-webkit-calendar-picker-indicator {
-      filter: invert(90%);
-  }
-  
-  .blackIcon::-webkit-calendar-picker-indicator {
-      filter: invert(0%);
-  }
-  
-  .greenText {
-      color: rgb(29, 192, 29);
-  }
-  
-  .redText {
-      color: rgb(255, 121, 121);
-  }
-  
-  .orangeText {
-      color: orange;
-  }
-  
-  #custom_date, #custom_date_label {
-      color: #e0e0e0;
-  
-  }
-  
-  #container {
-      margin-top: 35px;
-      background-color: white;
-      border-radius: 15px;
-      display: flex;
-      overflow: hidden;
-      width: 70.3%;
-      height: 200px;
-     
-      box-shadow: 0 0 20px #e9e9e9;
-  }
-  
-  .column {
-      float: left;
-  }
-  
-  #left, #right {
-      margin-top: 1.5%;
-      margin-bottom: 1.5%;
-      padding: 1.5%;
-  }
-  
-  #left {
-      width: 100%;
-      margin-left: 1.5%;
-      margin-right: 1.5%;
-      overflow-y: scroll;
-  }
-  
-  #right {
-      width: 100%;
-      margin-right: 1.5%;
-      overflow-y: scroll;
-  }
-  
-  #left_chart {
-      width: 250%;
-      padding-right: 5%;
-  }
-  
-  #right_chart {
-      font-size: 9pt;
-      padding-top: 2.5%;
-      width: 100%;
-  }
-  
-  #yearSelect {
-      font-size: 9pt;
-      margin-top: 25px;
-      width: 100px;
-      padding: 5px;
-  }
-  
-  
-  #radioSelect {
-      background-color: #f7f7f7;
-      border-radius: 10px;
-      width: 100%;
-      display: flex;
-  }
-  
-  #thisweek {
-      padding: 10px 0px 10px 0px;
-      border-radius: 10px;
-      width: 100%;
-      text-align: center;
-      float: left;
-  }
-  
-  #weekly {
-      padding: 10px 0px 10px 0px;
-      border-radius: 10px;
-      width: 100%;
-      text-align: center;
-      float: left;
-  }
-  
-  #monthly {
-      padding: 10px 0px 10px 0px;
-      border-radius: 10px;
-      width: 100%;
-      text-align: center;
-      float: left;
-  }
-  
-  .unselected {
-      font-weight: 400;
-      color: black;
-      background-color: #ffffff00;
-  }
-  
-  .unselected:hover {
-      font-weight: 400;
-      text-decoration: underline;
-      color: black;
-      cursor: pointer;
-  }
-  
-  .selected {
-      background-color: #ff4500;
-      color: white;
-      font-weight: 600;
-  }
-  
-  ::-webkit-scrollbar {
-      width: 1px;
-  }
-    
-  /* Track */
-  ::-webkit-scrollbar-track {
-      background: #e0e0e0;
-  }
-  
-  /* Handle */
-  ::-webkit-scrollbar-thumb {
-      background: #acacac;
-  }
+/* Track */
+::-webkit-scrollbar-track {
+    background: #424242;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+    background: #7a7a7a;
+}

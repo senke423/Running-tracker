@@ -1,7 +1,8 @@
 // const { ipcRenderer } = require("electron");
 
 let activityHistoryData;
-let PR_data;
+let pr_data;
+let JSON_info;
 let stayBlack = false;
 let last_id;
 
@@ -19,6 +20,7 @@ let combo_box;
 
 let selected_timeframe;
 let selected_distance;
+let selected_mode;
 
 let thisMonday;
 let thisSunday;
@@ -35,7 +37,7 @@ let chart_data = {
         },
         "monthly": {
             "x": [],
-            "y": []
+            "y": {}
         }
     },
     "time_data": {
@@ -49,7 +51,7 @@ let chart_data = {
         },
         "monthly": {
             "x": [],
-            "y": []
+            "y": {}
         }
     }
 };
@@ -101,6 +103,7 @@ let selected_year;
 
 window.onload = async function() {
 
+    let display_mode = document.getElementById('display_mode');
     option_this_week = document.getElementById('thisweek');
     option_weekly = document.getElementById('weekly');
     option_monthly = document.getElementById('monthly');
@@ -115,6 +118,8 @@ window.onload = async function() {
     last_sunday = findThisMondayDate();
     last_sunday.setDate(last_sunday.getDate() - 1);
     last_sunday = dateToString(last_sunday);
+
+    selected_year = findThisMondayDate().getFullYear();
 
     for (let i = 8; i > 0; i--){
 
@@ -158,17 +163,36 @@ window.onload = async function() {
     curr_time.innerText = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0') + ":" + now.getSeconds().toString().padStart(2, '0');
     setInterval(updateTime, 1000);
 
+    document.getElementById('yearSelect').addEventListener('change', () => {
+        playClickSound();
+        selected_year = document.getElementById('yearSelect').value;
+
+        refreshChart();
+    });
+
     document.getElementById('date_picker').addEventListener('mouseenter', () => {
-        document.getElementById('custom_date_label').style.color = 'black';
-        document.getElementById('custom_date').style.color = 'black';
+        if (selected_mode){
+            // DARK MODE
+            document.getElementById('custom_date_label').style.color = 'white';
+            document.getElementById('custom_date').style.color = 'white';
+        } else {
+            document.getElementById('custom_date_label').style.color = 'black';
+            document.getElementById('custom_date').style.color = 'black';
+        }
         document.getElementById('custom_date').classList.remove('grayIcon');
         document.getElementById('custom_date').classList.add('blackIcon');
     });
     
     document.getElementById('date_picker').addEventListener('mouseleave', () => {
         if (stayBlack) return;
-        document.getElementById('custom_date_label').style.color = '#e0e0e0';
-        document.getElementById('custom_date').style.color = '#e0e0e0';
+        if (selected_mode){
+            // DARK MODE
+            document.getElementById('custom_date_label').style.color = '#333333';
+            document.getElementById('custom_date').style.color = '#333333';
+        } else {
+            document.getElementById('custom_date_label').style.color = '#e0e0e0';
+            document.getElementById('custom_date').style.color = '#e0e0e0';
+        }
         document.getElementById('custom_date').classList.remove('blackIcon');
         document.getElementById('custom_date').classList.add('grayIcon');
     });
@@ -382,9 +406,18 @@ window.onload = async function() {
     thisMonday = findThisMonday();
     thisSunday = findThisSunday();
 
-    PR_data = await getPRdata();
+    JSON_info = await getJSONinfo();
     initChartOptions();
+
+    if (selected_mode){
+        // dark mode!
+        display_mode.setAttribute('href', './dark_styles.css');
+    } else {
+        display_mode.setAttribute('href', './styles.css');
+    }
+
     activityHistoryData = await getRecentData();
+    pr_data = await getPRdata();
 
     let iter_len = activityHistoryData.length;
     for (let i = 0; i < iter_len; i++){
@@ -403,8 +436,9 @@ window.onload = async function() {
 }
 
 function initChartOptions(){
-    selected_timeframe = PR_data[0];
-    selected_distance = PR_data[1];
+    selected_timeframe = JSON_info[0];
+    selected_distance = JSON_info[1];
+    selected_mode = JSON_info[2];
 
     switch (selected_timeframe){
         case 1:
@@ -623,13 +657,13 @@ function addChartData(row){
             insert_chronologically(chart_data.time_data.this_week.x, chart_data.time_data.this_week.y, row.activity_date);
             
             chart_data.distance_data.this_week.y[index] = row.distance;
-            chart_data.time_data.this_week.y[index] = Math.round(row.activity_time/60); // minutes
+            chart_data.time_data.this_week.y[index] = Math.round(10*row.activity_time/3600)/10; // hours, 1 decimal
 
         } else {
             let index = chart_data.distance_data.this_week.x.indexOf(row.activity_date);
 
             chart_data.distance_data.this_week.y[index] += row.distance;
-            chart_data.time_data.this_week.y[index] += Math.round(row.activity_time/60); // minutes
+            chart_data.time_data.this_week.y[index] += Math.round(10*row.activity_time/3600)/10; // hours, 1 decimal
         }
     }
 
@@ -638,13 +672,28 @@ function addChartData(row){
         for (let i = 1; i <= 8; i++){
             if (row.activity_date >= past_8_weeks_periods[i].monday && row.activity_date <= past_8_weeks_periods[i].sunday){
                 chart_data.distance_data.weekly.y[i - 1] += row.distance; 
-                chart_data.time_data.weekly.y[i - 1] += Math.round(row.activity_time/60);
+                chart_data.time_data.weekly.y[i - 1] += Math.round(10*row.activity_time/3600)/10; // hours, 1 decimal
                 break;
             }
         }
     }
 
+
     // past 12 months
+    let activity_year = parseInt(row.activity_date.slice(0, 4));
+    let activity_month = parseInt(row.activity_date.slice(5, 7));
+
+    if (!(activity_year in chart_data.distance_data.monthly.y)){
+        chart_data.distance_data.monthly.y[activity_year] = [];
+        chart_data.time_data.monthly.y[activity_year] = [];
+        for (let i = 0; i < findThisMondayDate().getMonth() + 1; i++){
+            chart_data.distance_data.monthly.y[activity_year].push(0);
+            chart_data.time_data.monthly.y[activity_year].push(0);
+        }
+    }
+    
+    chart_data.distance_data.monthly.y[activity_year][activity_month - 1] += row.distance;
+    chart_data.time_data.monthly.y[activity_year][activity_month - 1] += Math.round(10*row.activity_time/3600)/10; // hours, 1 decimal
 }
 
 function clearChartData(){
@@ -660,7 +709,7 @@ function clearChartData(){
             },
             "monthly": {
                 "x": [],
-                "y": []
+                "y": {}
             }
         },
         "time_data": {
@@ -674,7 +723,7 @@ function clearChartData(){
             },
             "monthly": {
                 "x": [],
-                "y": []
+                "y": {}
             }
         }
     };
@@ -709,6 +758,12 @@ function refreshChart(){
         x_markings.push(days_of_week[i]);
     }
 
+    let month_markings = [];
+    // getMonth(): january -> 0, february -> 1, ..., december -> 11
+    for (let i = 0; i < now.getMonth() + 1; i++){
+        month_markings.push(months[i]);
+    }
+
 
     if (selected_distance){
         running_chart.options.title.text = `Razdaljina [km]`;
@@ -734,11 +789,11 @@ function refreshChart(){
             yVals = chart_data.distance_data.weekly.y;
         }
         else if (selected_timeframe === 3){
-            xVals = chart_data.distance_data.monthly.x;
-            yVals = chart_data.distance_data.monthly.y;
+            xVals = month_markings;
+            yVals = chart_data.distance_data.monthly.y[selected_year];
         }
     } else {
-        running_chart.options.title.text = `Vreme [min]`;
+        running_chart.options.title.text = `Vreme [h]`;
         if (selected_timeframe === 1){
             let i;
             for (i = 0; i < chart_data.time_data.this_week.y.length; i++){
@@ -761,8 +816,8 @@ function refreshChart(){
             yVals = chart_data.time_data.weekly.y;
         }
         else if (selected_timeframe === 3){
-            xVals = chart_data.time_data.monthly.x;
-            yVals = chart_data.time_data.monthly.y;
+            xVals = month_markings;
+            yVals = chart_data.time_data.monthly.y[selected_year];
         }
     }
 
@@ -835,10 +890,14 @@ async function getRecentData(){
     return window.ipcRenderer.getRecentActivities();
 }
 
-async function getPRdata(){
-    return window.ipcRenderer.getPRdata();
+async function getJSONinfo(){
+    return window.ipcRenderer.getJSONinfo();
 }
 
 async function getUndoResponse(){
     return window.ipcRenderer.getUndoResponse();
+}
+
+async function getPRdata(){
+    return window.ipcRenderer.getPRdata();
 }

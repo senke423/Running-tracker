@@ -9,7 +9,7 @@ let db;
 let mainWindow;
 
 
-const menu = [
+let menu = [
     {
         label: 'Fajl',
         submenu: [
@@ -87,8 +87,6 @@ function exportData(option){
 }
 
 async function backToMainMenu(){
-    console.log(user_config);
-    console.log(user_config_path);
     console.log('Returned.');
 
     Menu.setApplicationMenu(mainMenu);
@@ -96,6 +94,17 @@ async function backToMainMenu(){
 }
 
 function switchDisplayMode(){
+    darkMode = !darkMode;
+    user_config.darkMode = darkMode;
+
+    const mode_label = darkMode ? 'Light mode' : 'Dark mode';
+    const menu_item = menu.find(item => item.click === switchDisplayMode);
+    if (menu_item){
+        menu_item.label = mode_label;
+        Menu.setApplicationMenu(Menu.buildFromTemplate(menu));
+    }
+
+    fs.writeFileSync(user_config_path, JSON.stringify(user_config, null, 2), 'utf8');
 }
 
 function openAboutPage(){
@@ -148,6 +157,7 @@ let user_config_path = path.join(__dirname, 'user_config.json');
 
 let selectedTimeframe;
 let selectedDistance;
+let darkMode;
 
 let last_id;
 
@@ -164,6 +174,7 @@ function readUserConfig(){
                 dbPath = user_config.dbPath;
                 selectedTimeframe = user_config.selectedTimeframe;
                 selectedDistance = user_config.selectedDistance;
+                darkMode = user_config.darkMode;
                 resolve();
                 
             } catch (err) {
@@ -191,6 +202,8 @@ async function initDBConnection(){
             dialog.showOpenDialog(mainWindow, {
                 properties: ['openFile', 'openDirectory']
             }).then(result => {
+                console.log('DIR ENTERED!\n');
+
                 // DIRECTORY ENTERED
                 dbPath = path.join(result.filePaths[0], 'trcanje.sqlite3');
                 user_config.dbPath = dbPath;
@@ -254,6 +267,32 @@ async function initDBConnection(){
                     console.error(err.message);
                 } else {
                     console.log('Table created.');
+
+                    // data
+                    const insertStmt = db.prepare(`INSERT INTO pr_category (pr_cat_id, pr_cat_desc, pr_cat_distance) VALUES
+                        (1, '1 K', 1),
+                        (2, '1 MI', 1.6),
+                        (3, '5 K', 5),
+                        (4, '10 K', 10),
+                        (5, '15 K', 15),
+                        (6, 'Polumaraton', 21),
+                        (7, '30 K', 30),
+                        (8, 'Maraton', 42),
+                        (9, '50 K', 50),
+                        (10, '100 K', 100),
+                        (11, '200 K', 200);`
+                    );
+
+                    insertStmt.run((err) => {
+                        if (err){
+                            console.log(err.message);
+                        } else {
+                            console.log('Data inserted.')
+                        }
+                    });
+
+                    insertStmt.finalize();
+
                 }
                 });
 
@@ -305,12 +344,67 @@ function getUndoResponse(){
     return last_id;
 }
 
-app.whenReady().then(() => {
+async function getRecordData(sql, params){
+    return new Promise((resolve, reject) => {
+        db.get(sql, params, (err, row) => {
+            if (err) {
+                return reject(err);
+            }
+            resolve(row);
+        });
+    });
+}
+
+async function getPRdata(){
+    return new Promise((resolve, reject) => {
+        db.all('SELECT * FROM pr_category', (err, data) => {
+            if (err) {
+                console.error('Error running query: ', err);
+                reject(err);
+            }
+
+            let pr_categories = data;
+            let formatted = [];
+
+            let number_of_categories = pr_categories[pr_categories.length - 1].pr_cat_id;
+            let sql = `SELECT * FROM personal_record WHERE pr_cat_id = ? ORDER BY pr_time ASC LIMIT 1`;
+            
+            try {
+                for (let i = 0; i < number_of_categories; i++){
+
+                    let temp_el = {
+                        'cat_name': '',
+                        'time': '',
+                        'pace': ''
+                    };
+                    formatted.push(temp_el);
+
+                    // let data = await getRecordData(sql, [i]);
+                }
+            } catch (err){
+                console.error(err);
+                reject(err);
+            }
+
+            console.log('FINAL LOOK:');
+            console.log(formatted);
+            resolve(formatted);
+            
+        });
+    });
+}
+
+async function initApp(){
     createMainWindow();
+    await initDBConnection();
 
-    initDBConnection();
+    const mode_label = darkMode ? 'Light mode' : 'Dark mode';
+    const menu_item = menu.find(item => item.click === switchDisplayMode);
+    if (menu_item){
+        menu_item.label = mode_label;
+    }
 
-    Menu.setApplicationMenu(mainMenu);
+    Menu.setApplicationMenu(Menu.buildFromTemplate(menu));
 
     app.on('activate', () => {
         if (BrowserWindow.getAllWindows().length === 0){
@@ -320,8 +414,10 @@ app.whenReady().then(() => {
 
     ipcMain.handle('get_recent_activities', getRecentActivities);
 
-    ipcMain.handle('get_pr_data', (event, ...args) => {
-        return [selectedTimeframe, selectedDistance];
+    ipcMain.handle('get-pr-data', getPRdata);
+
+    ipcMain.handle('get-json-info', (event, ...args) => {
+        return [selectedTimeframe, selectedDistance, darkMode];
     });
 
     ipcMain.handle('get-undo-response', getUndoResponse);
@@ -357,7 +453,9 @@ app.whenReady().then(() => {
     ipcMain.on('returnFocus', () => {
         mainWindow.focus();
     });
-});
+}
+
+app.whenReady().then(initApp);
 
 app.on('before-quit', () => {
 
