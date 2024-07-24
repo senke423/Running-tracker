@@ -52,17 +52,126 @@ const nonMainMenu = [
 const mainMenu = Menu.buildFromTemplate(menu);
 const otherMenu = Menu.buildFromTemplate(nonMainMenu);
 
-function exportData(option){
+async function get_table_data(){
+    let sql = ['SELECT * FROM activity', 'SELECT * FROM personal_record', 'SELECT * FROM pr_category'];
+    let ret = [];
+
+    return new Promise((resolve, reject) => {
+        db.all(sql[0], (err, data) => {
+            if (err) {
+                console.error('Error running query: ', err);
+                reject(err);
+            }
+            ret.push(data);
+
+            db.all(sql[1], (err, data) => {
+                if (err){
+                    console.error('Error running query: ', err);
+                    reject(err);
+                }
+                ret.push(data);
+    
+                db.all(sql[2], (err, data) => {
+                    if (err){
+                        console.error('Error running query: ', err);
+                        reject(err);
+                    }
+
+                    ret.push(data);
+                    resolve(ret);
+                });
+            });
+        });
+    });
+}
+
+async function exportData(option){
     let desktop_path = path.join(os.homedir(), 'Desktop');
     let unix_time = Math.floor(Date.now() / 1000);
+
+    let res = await get_table_data();
+    let paths = ['activity.json', 'personal_record.json', 'pr_category.json'];
+    let paths_psv = ['activity.psv', 'personal_record.psv', 'pr_category.psv'];
+
+    let dir_path;
+
     switch (option){
         case 1:
             // JSON
-            desktop_path = path.join(desktop_path, 'trcanje_export_' + unix_time.toString() + '.json');
+            dir_path = path.join(desktop_path, 'trcanje_export_json_' + unix_time.toString());
+            fs.mkdir(dir_path, { recursive: true }, (err) => {
+                if (err){
+                    dialog.showMessageBox(mainWindow, {
+                        type: 'warning',
+                        buttons: ['OK'],
+                        defaultId: 0,
+                        title: 'Neuspeh',
+                        message: 'Neuspeh!',
+                        detail: `Neuspešan izvoz podataka u JSON format.`
+                    });
+                }
+
+                for (let i = 0; i < res.length; i++){
+                    paths[i] = path.join(dir_path, paths[i]);
+                    fs.writeFileSync(paths[i], JSON.stringify(res[i], null, 2), 'utf8');
+                }
+            });
+
+            dialog.showMessageBox(mainWindow, {
+                type: 'info',
+                buttons: ['OK'],
+                defaultId: 0,
+                title: 'Uspešno',
+                message: 'Uspešno napravljena JSON rezervna kopija',
+                detail: `Kopiran fajl ${dbPath} na lokaciju ${desktop_path}.`
+            });
             break;
         case 2:
             // PSV
-            desktop_path = path.join(desktop_path, 'trcanje_export_' + unix_time.toString() + '.psv');
+            dir_path = path.join(desktop_path, 'trcanje_export_psv_' + unix_time.toString());
+            fs.mkdir(dir_path, { recursive: true }, (err) => {
+                if (err){
+                    dialog.showMessageBox(mainWindow, {
+                        type: 'warning',
+                        buttons: ['OK'],
+                        defaultId: 0,
+                        title: 'Neuspeh',
+                        message: 'Neuspeh!',
+                        detail: `Neuspešan izvoz podataka u PSV format.`
+                    });
+                }
+
+                for (let i = 0; i < res.length; i++){
+                    let res_len = res[i].length;
+                    let temp = '';
+                    
+                    for (let j = 0; j < res_len; j++){
+                        let element = res[i][j];
+                        for (let key in element){
+                            if (element.hasOwnProperty(key)){
+                                temp += element[key];
+                                temp += '|'; 
+                            }
+                        }
+                        temp = temp.slice(0, -1);
+                        temp += '\n';
+                    }
+
+                    //write to file
+                    paths_psv[i] = path.join(dir_path, paths_psv[i]);
+                    fs.writeFileSync(paths_psv[i], temp, 'utf8');
+                }
+            });
+
+            dialog.showMessageBox(mainWindow, {
+                type: 'info',
+                buttons: ['OK'],
+                defaultId: 0,
+                title: 'Uspešno',
+                message: 'Uspešno napravljena PSV rezervna kopija',
+                detail: `Kopiran fajl ${dbPath} na lokaciju ${desktop_path}.`
+            });
+
             break;
         case 3:
             // SQLITE

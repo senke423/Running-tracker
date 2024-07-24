@@ -1,4 +1,3 @@
-// const { ipcRenderer } = require("electron");
 
 let activityHistoryData;
 let pr_data;
@@ -134,28 +133,43 @@ window.onload = async function() {
     running_chart = new Chart("myChart", {
         type: "bar",
         data: {
-          labels: xVals,
-          datasets: [{
-            backgroundColor: 'orangered',
-            data: yVals
-          }]
+            labels: xVals,
+            datasets: [{
+                backgroundColor: 'white',
+                data: yVals
+            }]
         },
         options: {
-          legend: {display: false},
-          title: {
-            display: true,
-            text: "Statistika"
-          },
-          scales: {
-            yAxes: [{
-                display: true,
-                ticks: {
-                    beginAtZero: true
+            plugins: {
+                customCanvasBackgroundColor: {
+                  color: 'lightGreen',
                 }
-            }]
-          }
+            },
+            maintainAspectRatio: false,
+            legend: {display: false},
+            title: {
+                display: true,
+                text: "",
+                color: 'blue', // Change title color here
+                font: {
+                    family: 'Kode Mono 400'
+                }
+            },
+            scales: {
+                x: {
+                    ticks: {
+                        color: 'blue'
+                    }
+                },
+                y: {
+                    ticks: {
+                        color: 'blue'
+                    }
+                }
+            }
         }
     });
+    
 
 
     let curr_time = document.getElementById('curr_time');
@@ -483,8 +497,16 @@ function clearInputs(){
     document.getElementById('running_time').value = '';
     document.getElementById('custom_date').value = '';
     stayBlack = false;
-    document.getElementById('custom_date_label').style.color = '#e0e0e0';
-    document.getElementById('custom_date').style.color = '#e0e0e0';
+    
+    if (selected_mode){
+        // DARK MODE
+        document.getElementById('custom_date_label').style.color = '#333333';
+        document.getElementById('custom_date').style.color = '#333333';
+    } else {
+        document.getElementById('custom_date_label').style.color = '#e0e0e0';
+        document.getElementById('custom_date').style.color = '#e0e0e0';
+    }
+
     document.getElementById('custom_date').classList.remove('blackIcon');
     document.getElementById('custom_date').classList.add('grayIcon');
 }
@@ -764,8 +786,17 @@ function refreshChart(){
     }
 
 
+    if (selected_mode){
+        // DARK MODE
+        running_chart.data.datasets[0].backgroundColor = 'rgb(139, 46, 139)';
+    } else {
+        running_chart.data.datasets[0].backgroundColor = 'orangered';
+    }
+
+
     if (selected_distance){
         running_chart.options.title.text = `Razdaljina [km]`;
+
         if (selected_timeframe === 1){
             let i;
             for (i = 0; i < chart_data.distance_data.this_week.y.length; i++){
@@ -828,12 +859,23 @@ function refreshChart(){
 
 let html_table;
 
-function addRow(columns){
+function addRowRightPanel(columns){
     const table_row = document.createElement('tr');
     table_row.id = 'pr_row';
     for (let i = 0; i < 3; i++){
-        const cell = document.createElement('td');
-        cell.textContent = columns[i];
+        let cell = document.createElement('td');;
+        if (i != 1){
+            cell.textContent = columns[i];
+        } else {
+            // pr_time needs to be a textBox
+
+            txtBox = document.createElement('input');
+            txtBox.type = 'text';
+            txtBox.placeholder = columns[i];
+            txtBox.id = `txtBoxIn`;
+            cell.appendChild(txtBox);
+        }
+        
         cell.id = `pr_cell${i + 1}`;
         table_row.appendChild(cell);
     }
@@ -850,25 +892,37 @@ function refreshRightTab(){
     let iter_len = pr_data.length;
     for (let i = 0; i < iter_len; i++){
         let row = pr_data[i];
-        addRow([row.cat_data.pr_cat_desc, row.time, row.pace]);
+        addRowRightPanel([row.cat_data.pr_cat_desc, row.time, row.pace]);
     }
 
     rightPanel.appendChild(html_table);
 
 }
 
+let left_table;
+
+function addRowLeftPanel(columns){
+    const table_row = document.createElement('tr');
+    for (let i = 0; i < 4; i++){
+        const cell = document.createElement('td');
+        cell.textContent = columns[i];
+        cell.id = `left_cell${i + 1}`;
+        table_row.appendChild(cell);
+    }
+    left_table.appendChild(table_row);
+}
+
 function refreshLeftTab(){
     let leftPanel = document.getElementById('left');
     leftPanel.innerHTML = '<p style="margin-top: 0">Istorija aktivnosti:</p>';
+
+    left_table = document.createElement('table');
+    left_table.id = 'left_table';
 
     let counter = 1;
     let iter_len = activityHistoryData.length;
     for (let i = 0; i < iter_len; i++){
         let row = activityHistoryData[i];
-
-        let new_entry = document.createElement('p');
-        new_entry.style.userSelect = 'text';
-        new_entry.style.cursor = 'default';
 
         let formattedDate = row.activity_date;
 
@@ -898,11 +952,12 @@ function refreshLeftTab(){
             formattedPace = formattedPace.slice(1);
         }
 
-        new_entry.innerHTML = `<span style="color: #cccccc">${counter.toString(16)}.</span> <b>${(Math.round(row.distance * 10) / 10).toFixed(1)} K</b> &nbsp; ${formattedPace} &nbsp; <span style="color: gray">${formattedDate}</span>`;
-        leftPanel.appendChild(new_entry);
+        addRowLeftPanel([counter.toString(16) + '.', (Math.round(row.distance * 10) / 10).toFixed(1) + ' K', formattedPace, formattedDate]);
+
         counter++;
     }
 
+    leftPanel.appendChild(left_table);
     last_id = counter;
 }
 

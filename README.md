@@ -5,7 +5,7 @@ A simple cross-platform Electron app for tracking activities and personal record
 ## Features
 
 * You can insert and remove activities.
-* You can export activity data as `.json`, `.sqlite` or `.txt`.
+* You can export activity data as `.json`, `.sqlite` or `.psv`.
 * You can list through activity history and see your current PRs.
 * You can see your activity data visualized on a chart, change the time scale, and toggle between "distance" and "time" for the y axis.
 
@@ -13,4 +13,4 @@ A simple cross-platform Electron app for tracking activities and personal record
 
 To run the project, the following dependencies need to be installed:
 
-`$ npm i electron sqlite3`
+`$ npm i electron sqlite3 chart.js`
