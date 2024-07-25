@@ -1,6 +1,6 @@
 {
   "dbPath": "/home/sybilvane/Desktop/trcanje.sqlite3",
-  "darkMode": true,
+  "darkMode": false,
   "selectedTimeframe": 1,
-  "selectedDistance": true
+  "selectedDistance": false
 }

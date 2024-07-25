@@ -130,47 +130,7 @@ window.onload = async function() {
         past_8_weeks_periods[9 - i].sunday = dateToString(sun_temp);
     }
 
-    running_chart = new Chart("myChart", {
-        type: "bar",
-        data: {
-            labels: xVals,
-            datasets: [{
-                backgroundColor: 'white',
-                data: yVals
-            }]
-        },
-        options: {
-            plugins: {
-                customCanvasBackgroundColor: {
-                  color: 'lightGreen',
-                }
-            },
-            maintainAspectRatio: false,
-            legend: {display: false},
-            title: {
-                display: true,
-                text: "",
-                color: 'blue', // Change title color here
-                font: {
-                    family: 'Kode Mono 400'
-                }
-            },
-            scales: {
-                x: {
-                    ticks: {
-                        color: 'blue'
-                    }
-                },
-                y: {
-                    ticks: {
-                        color: 'blue'
-                    }
-                }
-            }
-        }
-    });
-    
-
+    styleChart();
 
     let curr_time = document.getElementById('curr_time');
     const now = new Date();
@@ -754,7 +714,84 @@ function dateToString(date){
     return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
 }
 
+function styleChart(){
+    // destroy instance of chart if it exists, and then create a new one
+    if (running_chart){
+        running_chart.destroy();
+    }
+
+    // selected_mode == true -> DARK MODE
+    const bckg_color = selected_mode ? 'rgb(40, 40, 40)' : 'white'; 
+    const dataset_text = selected_distance ? 'Razdaljina [km]' : 'Vreme [h]';
+    const gridline_color = selected_mode ? '#353535' : '#eeeeee';
+    const tick_color = selected_mode ? '#c0c0c0' : 'black';
+    const title_color = selected_mode ? 'white' : 'black';
+
+    const plugin = {
+        id: 'customCanvasBackgroundColor',
+        beforeDraw: (chart, args, options) => {
+          const {ctx} = chart;
+          ctx.save();
+          ctx.globalCompositeOperation = 'destination-over';
+          ctx.fillStyle = options.color || bckg_color;
+          ctx.fillRect(0, 0, chart.width, chart.height);
+          ctx.restore();
+        }
+      };
+
+    running_chart = new Chart("myChart", {
+        type: "bar",
+        data: {
+            labels: xVals,
+            datasets: [{
+                label: dataset_text,
+                data: yVals
+            }]
+        },
+        options: {
+            plugins: {
+                legend: {
+                    labels: {
+                        font: {
+                            family: 'Courier New'
+                        },
+                        color: title_color
+                    }
+                }
+            },
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    grid: {
+                        color: gridline_color
+                    },
+                    ticks: {
+                        color: tick_color,
+                        font: {
+                            family: 'Courier New'
+                        }
+                    }
+                },
+                x: {
+                    grid: {
+                        color: gridline_color
+                    },
+                    ticks: {
+                        color: tick_color,
+                        font: {
+                            family: 'Courier New'
+                        }
+                    }
+                }
+            }
+        },
+        plugins: [plugin]
+    });
+}
+
 function refreshChart(){
+    styleChart();
+
     // Show days of week instead of dates if 'This week' option is selected
     let now = new Date();
     
@@ -795,7 +832,6 @@ function refreshChart(){
 
 
     if (selected_distance){
-        running_chart.options.title.text = `Razdaljina [km]`;
 
         if (selected_timeframe === 1){
             let i;
@@ -823,7 +859,6 @@ function refreshChart(){
             yVals = chart_data.distance_data.monthly.y[selected_year];
         }
     } else {
-        running_chart.options.title.text = `Vreme [h]`;
         if (selected_timeframe === 1){
             let i;
             for (i = 0; i < chart_data.time_data.this_week.y.length; i++){
@@ -857,7 +892,18 @@ function refreshChart(){
     running_chart.update();
 }
 
+function input_new_pr(params){
+    // params -> PR description
+
+    let result = confirm("Uneti novi PR?");
+
+    if (result) {
+        console.log(params[0]);
+    }
+}
+
 let html_table;
+let pr_input_cnt = 1;
 
 function addRowRightPanel(columns){
     const table_row = document.createElement('tr');
@@ -872,11 +918,18 @@ function addRowRightPanel(columns){
             txtBox = document.createElement('input');
             txtBox.type = 'text';
             txtBox.placeholder = columns[i];
-            txtBox.id = `txtBoxIn`;
+            txtBox.classList = `txtBoxIn`;
+            txtBox.id = `${pr_input_cnt}`;
+            txtBox.addEventListener('keydown', (event) => {
+                if (event.key === 'Enter') {
+                    input_new_pr(columns[0]);
+                }
+            });
+            pr_input_cnt++;
             cell.appendChild(txtBox);
         }
         
-        cell.id = `pr_cell${i + 1}`;
+        cell.classList = `pr_cell${i + 1}`;
         table_row.appendChild(cell);
     }
     html_table.appendChild(table_row);
@@ -906,7 +959,7 @@ function addRowLeftPanel(columns){
     for (let i = 0; i < 4; i++){
         const cell = document.createElement('td');
         cell.textContent = columns[i];
-        cell.id = `left_cell${i + 1}`;
+        cell.classList = `left_cell${i + 1}`;
         table_row.appendChild(cell);
     }
     left_table.appendChild(table_row);
