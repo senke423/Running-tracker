@@ -611,6 +611,10 @@ async function initApp(){
             let now = new Date();
             let date = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')}`;
 
+            if (last_pr_id == null){
+                last_pr_id = 1;
+            }
+            
             const sql = 'INSERT INTO personal_record(pr_id, pr_date, pr_cat_id, pr_time, pr_pace) VALUES(?, ?, (SELECT pr_cat_id FROM pr_category WHERE pr_cat_desc = ?), ?, ?);';
             db.run(sql, [last_pr_id, date, pr_description, time, pace], function(err) {
                 if (err) {
