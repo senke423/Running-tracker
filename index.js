@@ -214,6 +214,8 @@ function switchDisplayMode(){
     }
 
     fs.writeFileSync(user_config_path, JSON.stringify(user_config, null, 2), 'utf8');
+
+    mainWindow.webContents.reload();
 }
 
 function openAboutPage(){
@@ -402,6 +404,7 @@ async function initDBConnection(){
 
                     insertStmt.finalize();
 
+                    mainWindow.webContents.reload();
                 }
                 });
 
