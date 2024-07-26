@@ -123,7 +123,7 @@ async function exportData(option){
                 defaultId: 0,
                 title: 'Uspešno',
                 message: 'Uspešno napravljena JSON rezervna kopija',
-                detail: `Kopiran fajl ${dbPath} na lokaciju ${desktop_path}.`
+                detail: `Kopiran fajl "${dbPath}" na lokaciju "${desktop_path}".`
             });
             break;
         case 2:
@@ -169,7 +169,7 @@ async function exportData(option){
                 defaultId: 0,
                 title: 'Uspešno',
                 message: 'Uspešno napravljena PSV rezervna kopija',
-                detail: `Kopiran fajl ${dbPath} na lokaciju ${desktop_path}.`
+                detail: `Kopiran fajl "${dbPath}" na lokaciju "${desktop_path}".`
             });
 
             break;
@@ -186,7 +186,7 @@ async function exportData(option){
                         defaultId: 0,
                         title: 'Uspešno',
                         message: 'Uspešno napravljena rezervna kopija',
-                        detail: `Kopiran fajl ${dbPath} na lokaciju ${desktop_path}.`
+                        detail: `Kopiran fajl "${dbPath}" na lokaciju "${desktop_path}".`
                     });
                 }
             });
@@ -234,11 +234,12 @@ function createMainWindow() {
             preload: path.join(__dirname, 'preload.js'), // Use preload script for IPC
             nodeIntegration: false,
             contextIsolation: true,
-        }
+        },
+        icon: path.join(__dirname, 'running_icon.png')
     });
 
     // devtools
-    mainWindow.webContents.openDevTools();
+    // mainWindow.webContents.openDevTools();
 
     mainWindow.loadFile(path.join(__dirname, './renderer/renderer.html'));
 }
@@ -294,6 +295,7 @@ function readUserConfig(){
     });
 }
 
+let last_pr_id;
 
 async function initDBConnection(){
 
@@ -430,6 +432,18 @@ async function initDBConnection(){
                 }
             }
         });
+
+        db.all('SELECT pr_id FROM personal_record ORDER BY pr_id DESC LIMIT 1', (err, rows) => {
+            if (err){
+                console.error('Error trying to get last pr_id: ', err);
+            } else {
+                if (rows === undefined || rows.length == 0){
+                    last_pr_id = 1;
+                } else {
+                    last_pr_id = rows[0].pr_id + 1;
+                }
+            }
+        });
     }
 }
 
@@ -449,6 +463,25 @@ function getUndoResponse(){
     });
 
     return last_id;
+}
+
+function getUndoResponsePR(){
+    const query = "DELETE FROM personal_record WHERE pr_id = (SELECT pr_id FROM personal_record ORDER BY pr_id DESC LIMIT 1)";
+    db.run(query, function(err){
+        if (err) {
+            console.error('Error deleting activity: ', err.message);
+        } else {
+            if (last_pr_id === 1){
+                console.log('Nothing left to delete.');
+            } else {
+                last_pr_id--;
+                console.log(`Most recent entry deleted.`);
+            }
+        }
+    });
+
+    console.log(last_pr_id);
+    return last_pr_id;
 }
 
 async function get_PR_cat_data(){
@@ -500,9 +533,9 @@ async function getPRdata(){
         } else {
             let formatted_time = '';
             if (row.pr_time < 3600){
-                formatted_time = `${Math.round(row.pr_time/60).toString().padStart(1, '0')}:${(row.pr_time%60).toString().padStart(2, '0')}`;
+                formatted_time = `${Math.floor(row.pr_time/60).toString().padStart(1, '0')}:${(row.pr_time%60).toString().padStart(2, '0')}`;
             } else {
-                formatted_time = `${Math.round(row.pr_time/3600).toString().padStart(1, '0')}:${Math.round((row.pr_time%3600)/60).toString().padStart(2, '0')}:${(row.pr_time%60).toString().padStart(2, '0')}`;
+                formatted_time = `${Math.floor(row.pr_time/3600).toString().padStart(1, '0')}:${Math.floor((row.pr_time%3600)/60).toString().padStart(2, '0')}:${(row.pr_time%60).toString().padStart(2, '0')}`;
             }
 
             let formatted_pace = row.pr_pace[0] === '0' ? row.pr_pace.slice(1) : row.pr_pace;
@@ -516,6 +549,18 @@ async function getPRdata(){
     }
 
     return formatted;
+}
+
+function get_pr_cat_id(pr_desc){
+    return new Promise((resolve, reject) => {
+        db.all('SELECT pr_cat_distance FROM pr_category WHERE pr_cat_desc = ?', pr_desc, (err, rows) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(rows);
+            }
+        });
+    });
 }
 
 async function initApp(){
@@ -544,7 +589,39 @@ async function initApp(){
         return [selectedTimeframe, selectedDistance, darkMode];
     });
 
+    ipcMain.handle('get-undo-response-pr', getUndoResponsePR);
+
     ipcMain.handle('get-undo-response', getUndoResponse);
+
+    ipcMain.on('newPR', (event, data) => {
+        
+        let pr_description = data[0];
+        let time = data[1];
+        let distance;
+
+        get_pr_cat_id(pr_description)
+        .then(rows => {
+            distance = parseFloat(rows[0].pr_cat_distance);
+
+            let pace = `${Math.floor((time/distance)/60).toString().padStart(2, '0')}:${Math.round((time/distance)%60).toString().padStart(2, '0')} /km`;
+
+            let now = new Date();
+            let date = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')}`;
+
+            const sql = 'INSERT INTO personal_record(pr_id, pr_date, pr_cat_id, pr_time, pr_pace) VALUES(?, ?, (SELECT pr_cat_id FROM pr_category WHERE pr_cat_desc = ?), ?, ?);';
+            db.run(sql, [last_pr_id, date, pr_description, time, pace], function(err) {
+                if (err) {
+                    console.error('Error inserting new personal record: ', err.message);
+                } else {
+                    console.log(`A new personal best has been inserted with id ${last_pr_id}`);
+                    last_pr_id++;
+                }
+            });
+        })
+        .catch(err => {
+            console.error(err);
+        });
+    });
 
     ipcMain.on('change-sel-timeframe', (event, data) => {
         user_config.selectedTimeframe = data;
@@ -559,11 +636,9 @@ async function initApp(){
         let time = parseInt(data[1]);
         let date = data[2];
         
-        // not rigorous enough
-        // let last_id = parseInt(data[3]);
         let pace = `${Math.floor((time/distance)/60).toString().padStart(2, '0')}:${Math.round((time/distance)%60).toString().padStart(2, '0')} /km`;
 
-        const sql = "INSERT INTO activity(activity_id, activity_date, distance, activity_time, pace) VALUES(?, ?, ?, ?, ?);"
+        const sql = "INSERT INTO activity(activity_id, activity_date, distance, activity_time, pace) VALUES(?, ?, ?, ?, ?);";
         db.run(sql, [last_id, date, distance, time, pace], function(err) {
             if (err) {
                 console.error('Error inserting new activity: ', err.message);

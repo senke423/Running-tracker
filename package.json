@@ -12,5 +12,8 @@
     "chart.js": "^4.4.3",
     "electron": "^31.2.1",
     "sqlite3": "^5.1.7"
+  },
+  "devDependencies": {
+    "@electron/packager": "^18.3.3"
   }
 }

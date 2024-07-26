@@ -99,6 +99,17 @@ let past_8_weeks_periods = {
 };
 
 let selected_year;
+let pr_description;
+let time_string;
+let text_box_id;
+let placeholder_vals = {};
+
+window.onclick = function(event) {
+    let modal = document.getElementById("myModal");
+    if (event.target == modal) {
+      modal.style.display = "none";
+    }
+}
 
 window.onload = async function() {
 
@@ -111,25 +122,36 @@ window.onload = async function() {
     combo_box = document.getElementById('yearSelect');
 
     // monday_8_weeks_ago is global because it's used in updateChart
+    /* THIS SECTION IS IF YOU >>>DON'T<<< COUNT THE CURRENT WEEK
+        AMONG THE PAST 8 WEEKS
     monday_8_weeks_ago = findThisMondayDate();
     monday_8_weeks_ago.setDate(monday_8_weeks_ago.getDate() - 8*7);
     monday_8_weeks_ago = dateToString(monday_8_weeks_ago);
     last_sunday = findThisMondayDate();
     last_sunday.setDate(last_sunday.getDate() - 1);
     last_sunday = dateToString(last_sunday);
+    */
 
-    selected_year = findThisMondayDate().getFullYear();
+    /* THIS SECTION IS IF YOU >>>DO<<< COUNT THE CURRENT WEEK
+        AMONG THE PAST 8 WEEKS
+    */
+    monday_8_weeks_ago = findThisMondayDate();
+    monday_8_weeks_ago.setDate(monday_8_weeks_ago.getDate() - 7*7);
+    monday_8_weeks_ago = dateToString(monday_8_weeks_ago);
+    last_sunday = findThisSundayDate();
+    last_sunday = dateToString(last_sunday);
+
 
     for (let i = 8; i > 0; i--){
-
         let mon_temp = findThisMondayDate();
         let sun_temp = findThisSundayDate();
-        mon_temp.setDate(mon_temp.getDate() - 7*i);
-        sun_temp.setDate(sun_temp.getDate() - 7*i);
+        mon_temp.setDate(mon_temp.getDate() - 7*(i - 1));
+        sun_temp.setDate(sun_temp.getDate() - 7*(i - 1));
         past_8_weeks_periods[9 - i].monday = dateToString(mon_temp);
         past_8_weeks_periods[9 - i].sunday = dateToString(sun_temp);
     }
 
+    selected_year = findThisMondayDate().getFullYear();
     styleChart();
 
     let curr_time = document.getElementById('curr_time');
@@ -234,6 +256,8 @@ window.onload = async function() {
 
         window.ipcRenderer.send('newActivity', data);
 
+        tryToEnterNewPR(time_string, distance);
+
         playSuccessSound();
         let msg_element = document.getElementById('msg');
         msg_element.className = '';
@@ -327,50 +351,172 @@ window.onload = async function() {
         }
     });
 
-    document.getElementById('undo_btn').addEventListener('click', () => {
-        playClickSound();
-        let result = confirm("Sigurno?");
-        
-        if (result){
-            playSuccessSound();
+    document.getElementById('pr_undo').addEventListener('click', () => {
+        playSuccessSound();
 
-            let ret;
-            getUndoResponse()
-                .then(response => {
-                    ret = response;
-                })
-                .catch(error => {
-                    console.error('Unexpected error. renderer.js -> window.onload');
-                })
+        let ret;
+        getUndoResponsePR()
+            .then(response => {
+                ret = response;
 
-            getRecentData().then(data => {
                 let msg_element = document.getElementById('msg');
                 msg_element.className = '';
                 msg_element.classList.add('orangeText');
                 if (ret === 1){
                     msg_element.innerText = 'Nema podataka za brisanje.';
                 } else {
-                    msg_element.innerText = 'Izbrisan poslednji unos.';
+                    msg_element.innerText = 'Izbrisan poslednji PR.';
                 }
 
                 setTimeout(function() {
                     msg_element.innerText = '';
                 }, 1000);
 
-                activityHistoryData = data;
-                clearChartData();
-
-                let iter_len = activityHistoryData.length;
-                for (let i = 0; i < iter_len; i++){
-                    addChartData(activityHistoryData[i]);
-                }
-                
-
                 refreshTabs();
+            })
+            .catch(error => {
+                console.error('Unexpected error. renderer.js -> window.onload');
             });
+
+        closeDialog();
+    });
+
+    document.getElementById('act_undo').addEventListener('click', () => {
+        playSuccessSound();
+
+        let ret;
+        getUndoResponse()
+            .then(response => {
+                ret = response;
+            })
+            .catch(error => {
+                console.error('Unexpected error. renderer.js -> window.onload');
+            });
+
+        getRecentData().then(data => {
+            let msg_element = document.getElementById('msg');
+            msg_element.className = '';
+            msg_element.classList.add('orangeText');
+            if (ret === 1){
+                msg_element.innerText = 'Nema podataka za brisanje.';
+            } else {
+                msg_element.innerText = 'Izbrisan poslednji unos.';
+            }
+
+            setTimeout(function() {
+                msg_element.innerText = '';
+            }, 1000);
+
+            activityHistoryData = data;
+            clearChartData();
+
+            let iter_len = activityHistoryData.length;
+            for (let i = 0; i < iter_len; i++){
+                addChartData(activityHistoryData[i]);
+            }
+            
+
+            refreshTabs();
+        });
+
+        closeDialog();
+    });
+
+    document.getElementsByClassName('close')[0].addEventListener('click', () => {
+        playClickSound();
+        document.getElementById('myModal').style.display = "none";
+    });
+
+    document.getElementById('undo_btn').addEventListener('click', () => {
+        playClickSound();
+
+        let dialog = document.getElementById('myModal');
+        document.getElementById('dialog_msg').innerText = 'Sigurno? Klikni šta želiš da izbrišeš, ili otkaži tako što klikneš na \'x\' ili van dijaloga.';
+        document.getElementById('act_undo').style.display = 'inline-block';
+        document.getElementById('pr_undo').style.display = 'inline-block';
+        document.getElementById('input_pr_btn').style.display = 'none';
+        dialog.style.display = 'block';
+
+    });
+
+    document.getElementById('input_pr_btn').addEventListener('click', () => {
+        let time = 0;
+        let regexPattern = /^(?:(\d{1,2}):)?(\d{1,2}):(\d{1,2})$/;
+        let match = time_string.match(regexPattern);
+       
+        if (match == null){
+            playErrorSound();
+            let msg_element = document.getElementById('msg');
+            msg_element.className = '';
+            msg_element.classList.add('redText');
+            msg_element.innerText = 'Neispravan unos!';
+
+            setTimeout(function() {
+                msg_element.innerText = '';
+            }, 1000);
+
+            closeDialog();
+
+            document.getElementById(text_box_id).value = '';
+
+            return;
         }
 
-        window.ipcRenderer.send('returnFocus');
+        let prev_time = 0;
+        let match_prev_time = placeholder_vals[text_box_id].match(regexPattern);
+
+
+        if (match[1] !== undefined){
+            time += parseInt(match[1])*3600;
+        }
+
+        time += parseInt(match[2])*60;
+        time += parseInt(match[3]);
+
+        if (placeholder_vals[text_box_id] == 'n/a'){
+            prev_time = 31536000;
+        } else {
+            if (match_prev_time[1] !== undefined){
+                prev_time += parseInt(match_prev_time[1])*3600;
+            }
+    
+            prev_time += parseInt(match_prev_time[2])*60;
+            prev_time += parseInt(match_prev_time[3]);
+        }
+        
+        if (prev_time <= time){
+            playErrorSound();
+            let msg_element = document.getElementById('msg');
+            msg_element.className = '';
+            msg_element.classList.add('redText');
+            msg_element.innerText = 'Novi PR gori od prošlog?';
+
+            setTimeout(function() {
+                msg_element.innerText = '';
+            }, 2000);
+
+            closeDialog();
+
+            document.getElementById(text_box_id).value = '';
+
+            return;
+        }
+
+
+        playSuccessSound();
+        let msg_element = document.getElementById('msg');
+        msg_element.className = '';
+        msg_element.classList.add('greenText');
+        msg_element.innerText = 'Uneto.';
+
+        setTimeout(function() {
+            msg_element.innerText = '';
+        }, 1000);
+
+        window.ipcRenderer.send('newPR', [pr_description, time]);
+
+        refreshRightTab();
+        closeDialog();
     });
 
     document.getElementById('distance').addEventListener('click', () => {
@@ -407,6 +553,89 @@ window.onload = async function() {
 
     refreshTabs();
 
+    fadeOutEffect();
+}
+
+function tryToEnterNewPR(time_string, distance){
+    let time = 0;
+    let regexPattern = /^(?:(\d{1,2}):)?(\d{1,2}):(\d{1,2})$/;
+    let match = time_string.match(regexPattern);
+
+    let tolerance = 4/100; // in percent
+    let upper_bound = distance * (1 + tolerance);
+    let lower_bound = distance * (1 - tolerance);
+
+    let pr_description;
+    let target_distance;
+    let target_index = -1;
+    for (let i = 0; i < pr_data.length; i++){
+        let temp = pr_data[i].cat_data.pr_cat_distance;
+        if (temp >= lower_bound && temp <= upper_bound){
+            target_index = i + 1;
+            target_distance = pr_data[i].cat_data.pr_cat_distance;
+            pr_description = pr_data[i].cat_data.pr_cat_desc;
+            break;
+        }
+    }
+
+    if (target_index == -1){
+        return;
+    }
+
+    
+    let ind = `t${target_index}`;
+    let prev_time = 0;
+    let match_prev_time = placeholder_vals[ind].match(regexPattern);
+
+    if (match[1] !== undefined){
+        time += parseInt(match[1])*3600;
+    }
+
+    time += parseInt(match[2])*60;
+    time += parseInt(match[3]);
+
+    if (placeholder_vals[ind] == 'n/a'){
+        prev_time = 31536000;
+    } else {
+        if (match_prev_time[1] !== undefined){
+            prev_time += parseInt(match_prev_time[1])*3600;
+        }
+
+        prev_time += parseInt(match_prev_time[2])*60;
+        prev_time += parseInt(match_prev_time[3]);
+    }
+
+    // the time needs to be scaled, because there's a tolerance involved;
+    // so the distance may not be exact
+    time = Math.round((target_distance/distance)*time);
+    
+    if (prev_time <= time){
+        return;
+    }
+
+    window.ipcRenderer.send('newPR', [pr_description, time]);
+
+    refreshRightTab();
+}
+
+function fadeOutEffect(){
+    let fadeTarget = document.getElementById('overlay');
+    let fadeEffect = setInterval(function () {
+        if (!fadeTarget.style.opacity) {
+            fadeTarget.style.opacity = 1;
+        }
+        if (fadeTarget.style.opacity > 0) {
+            fadeTarget.style.opacity -= 0.5;
+        } else {
+            fadeTarget.style.zIndex = -1;
+            clearInterval(fadeEffect);
+        }
+    }, 15);
+}
+
+function closeDialog(){
+    let dialog = document.getElementById('myModal');
+    dialog.style.display = 'none';
 }
 
 function initChartOptions(){
@@ -847,8 +1076,8 @@ function refreshChart(){
         }
         else if (selected_timeframe === 2){
             x_markings = [];
-            for (let i = -8; i < 0; i++){
-                x_markings.push(i.toString() + ' ned.');
+            for (let i = -7; i <= 0; i++){
+                x_markings.push(i.toString() + '. ned.');
             }
 
             xVals = x_markings;
@@ -873,7 +1102,7 @@ function refreshChart(){
         }
         else if (selected_timeframe === 2){
             x_markings = [];
-            for (let i = -8; i < 0; i++){
+            for (let i = -7; i <= 0; i++){
                 x_markings.push(i.toString() + ' ned.');
             }
 
@@ -892,18 +1121,19 @@ function refreshChart(){
     running_chart.update();
 }
 
-function input_new_pr(params){
-    // params -> PR description
+async function input_new_pr(){
 
-    let result = confirm("Uneti novi PR?");
+    let dialog = document.getElementById('myModal');
+    document.getElementById('dialog_msg').innerText = 'Uneti novi PR?';
+    document.getElementById('act_undo').style.display = 'none';
+    document.getElementById('pr_undo').style.display = 'none';
+    document.getElementById('input_pr_btn').style.display = 'inline-block';
+    dialog.style.display = 'block';
 
-    if (result) {
-        console.log(params[0]);
-    }
 }
 
 let html_table;
-let pr_input_cnt = 1;
+let pr_input_cnt;
 
 function addRowRightPanel(columns){
     const table_row = document.createElement('tr');
@@ -915,14 +1145,19 @@ function addRowRightPanel(columns){
         } else {
             // pr_time needs to be a textBox
 
-            txtBox = document.createElement('input');
+            let txtBox = document.createElement('input');
             txtBox.type = 'text';
             txtBox.placeholder = columns[i];
+            placeholder_vals[`t${pr_input_cnt}`] = columns[i];
             txtBox.classList = `txtBoxIn`;
-            txtBox.id = `${pr_input_cnt}`;
+            txtBox.id = `t${pr_input_cnt}`;
             txtBox.addEventListener('keydown', (event) => {
                 if (event.key === 'Enter') {
-                    input_new_pr(columns[0]);
+                    pr_description = columns[0]; 
+                    time_string = txtBox.value;
+                    text_box_id = txtBox.id;
+
+                    input_new_pr();
                 }
             });
             pr_input_cnt++;
@@ -935,7 +1170,10 @@ function addRowRightPanel(columns){
     html_table.appendChild(table_row);
 }
 
-function refreshRightTab(){
+async function refreshRightTab(){
+    pr_data = await getPRdata();
+
+    pr_input_cnt = 1;
     let rightPanel = document.getElementById('right');
     rightPanel.innerHTML = '<p style="margin-top: 0">PR-ovi:</p>';
     
@@ -1033,4 +1271,8 @@ async function getUndoResponse(){
 
 async function getPRdata(){
     return window.ipcRenderer.getPRdata();
+}
+
+async function getUndoResponsePR(){
+    return window.ipcRenderer.getUndoResponsePR();
 }

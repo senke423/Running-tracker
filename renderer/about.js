@@ -9,6 +9,23 @@ window.onload = async function() {
     } else {
         display_mode.setAttribute('href', './styles.css');
     }
+
+    fadeOutEffect();
+}
+
+function fadeOutEffect(){
+    let fadeTarget = document.getElementById('overlay');
+    let fadeEffect = setInterval(function () {
+        if (!fadeTarget.style.opacity) {
+            fadeTarget.style.opacity = 1;
+        }
+        if (fadeTarget.style.opacity > 0) {
+            fadeTarget.style.opacity -= 0.5;
+        } else {
+            fadeTarget.style.zIndex = -1;
+            clearInterval(fadeEffect);
+        }
+    }, 15);
 }
 
 async function getJSONinfo(){
