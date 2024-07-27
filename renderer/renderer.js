@@ -258,6 +258,7 @@ window.onload = async function() {
 
         tryToEnterNewPR(time_string, distance);
 
+        selected_year = new Date().getFullYear();
         playSuccessSound();
         let msg_element = document.getElementById('msg');
         msg_element.className = '';
@@ -701,10 +702,10 @@ function clearInputs(){
 }
 
 function refreshTabs(){
+    populateComboBox();
     refreshLeftTab();
     refreshRightTab();
     refreshChart();
-    populateComboBox();
     updateStats();
     thisMonday = findThisMonday();
     thisSunday = findThisSunday();
@@ -735,6 +736,9 @@ function populateComboBox(){
         temp.value = parseInt(year);
         yearSelect.appendChild(temp);
     }
+
+
+    yearSelect.selectedIndex = 0;
 }
 
 function findThisMondayDate(){
@@ -896,10 +900,19 @@ function addChartData(row){
     if (!(activity_year in chart_data.distance_data.monthly.y)){
         chart_data.distance_data.monthly.y[activity_year] = [];
         chart_data.time_data.monthly.y[activity_year] = [];
-        for (let i = 0; i < findThisMondayDate().getMonth() + 1; i++){
-            chart_data.distance_data.monthly.y[activity_year].push(0);
-            chart_data.time_data.monthly.y[activity_year].push(0);
+
+        if (activity_year != new Date().getFullYear()){
+            for (let i = 0; i < 12; i++){
+                chart_data.distance_data.monthly.y[activity_year].push(0);
+                chart_data.time_data.monthly.y[activity_year].push(0);
+            }
+        } else {
+            for (let i = 0; i < findThisMondayDate().getMonth() + 1; i++){
+                chart_data.distance_data.monthly.y[activity_year].push(0);
+                chart_data.time_data.monthly.y[activity_year].push(0);
+            }
         }
+
     }
     
     chart_data.distance_data.monthly.y[activity_year][activity_month - 1] += row.distance;
@@ -1047,7 +1060,14 @@ function refreshChart(){
 
     let month_markings = [];
     // getMonth(): january -> 0, february -> 1, ..., december -> 11
-    for (let i = 0; i < now.getMonth() + 1; i++){
+    let upper_bound;
+    if (document.getElementById('yearSelect').selectedIndex == 0){
+        upper_bound = now.getMonth() + 1;
+    } else {
+        upper_bound = 12;
+    }
+
+    for (let i = 0; i < upper_bound; i++){
         month_markings.push(months[i]);
     }
 
