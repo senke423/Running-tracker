@@ -436,6 +436,7 @@ window.onload = async function() {
         document.getElementById('act_undo').style.display = 'inline-block';
         document.getElementById('pr_undo').style.display = 'inline-block';
         document.getElementById('input_pr_btn').style.display = 'none';
+        document.getElementById('data_table').style.display = 'none';
         dialog.style.display = 'block';
 
     });
@@ -1148,6 +1149,7 @@ async function input_new_pr(){
     document.getElementById('act_undo').style.display = 'none';
     document.getElementById('pr_undo').style.display = 'none';
     document.getElementById('input_pr_btn').style.display = 'inline-block';
+    document.getElementById('data_table').style.display = 'none';
     dialog.style.display = 'block';
 
 }
@@ -1155,13 +1157,41 @@ async function input_new_pr(){
 let html_table;
 let pr_input_cnt;
 
-function addRowRightPanel(columns){
+async function findPRDate(arg){
+    return window.ipcRenderer.getPRDate(arg);
+}
+
+async function addRowRightPanel(columns, dialog_data){
     const table_row = document.createElement('tr');
+    let dialog_date = await findPRDate(dialog_data.pr_id);
+    if (dialog_date.length != 0){
+        dialog_date = dialog_date[0].pr_date;
+    }
+
     table_row.id = 'pr_row';
     for (let i = 0; i < 3; i++){
         let cell = document.createElement('td');;
         if (i != 1){
             cell.textContent = columns[i];
+            cell.addEventListener('click', () => {
+                playClickSound();
+                let dialog = document.getElementById('myModal');
+                if (dialog_data.pr_id == -1){
+                    document.getElementById('dialog_msg').innerText = '';
+                } else {
+                    document.getElementById('dialog_msg').innerText = formatToText(dialog_date);
+                }
+                document.getElementById('act_undo').style.display = 'none';
+                document.getElementById('pr_undo').style.display = 'none';
+                document.getElementById('input_pr_btn').style.display = 'none';
+                document.getElementById('data_table').style.display = 'table';
+
+                document.getElementById('data_table_dist').innerText = (Math.round(dialog_data.cat_data.pr_cat_distance * 10)/10).toString() + ' K';
+                document.getElementById('data_table_pace').innerText = dialog_data.pace[0] === '0' ? dialog_data.pace.slice(1) : dialog_data.pace;
+                document.getElementById('data_table_time').innerText = dialog_data.time;
+
+                dialog.style.display = 'block';
+            });
         } else {
             // pr_time needs to be a textBox
 
@@ -1203,7 +1233,7 @@ async function refreshRightTab(){
     let iter_len = pr_data.length;
     for (let i = 0; i < iter_len; i++){
         let row = pr_data[i];
-        addRowRightPanel([row.cat_data.pr_cat_desc, row.time, row.pace]);
+        await addRowRightPanel([row.cat_data.pr_cat_desc, row.time, row.pace], pr_data[i]);
     }
 
     rightPanel.appendChild(html_table);
@@ -1212,7 +1242,55 @@ async function refreshRightTab(){
 
 let left_table;
 
-function addRowLeftPanel(columns){
+function formatToText(stringified){
+    let year = stringified.slice(0, 4);
+    let month = parseInt(stringified.slice(5, 7));
+    let day = stringified.slice(8, 10);
+
+    switch (month){
+        case 1:
+            month = 'januar';
+            break;
+        case 2:
+            month = 'februar';
+            break;
+        case 3:
+            month = 'mart';
+            break;
+        case 4:
+            month = 'april';
+            break;
+        case 5:
+            month = 'maj';
+            break;
+        case 6:
+            month = 'jun';
+            break;
+        case 7:
+            month = 'jul';
+            break;
+        case 8:
+            month = 'avgust';
+            break;
+        case 9:
+            month = 'septembar';
+            break;
+        case 10:
+            month = 'oktobar';
+            break;
+        case 11:
+            month = 'novembar';
+            break;
+        case 12:
+            month = 'decembar';
+            break;
+        default:
+            month = 'err';
+    }
+    return day + '. ' + month + ' ' + year + '.';
+}
+
+function addRowLeftPanel(columns, activity_row){
     const table_row = document.createElement('tr');
     for (let i = 0; i < 4; i++){
         const cell = document.createElement('td');
@@ -1220,6 +1298,29 @@ function addRowLeftPanel(columns){
         cell.classList = `left_cell${i + 1}`;
         table_row.appendChild(cell);
     }
+    table_row.addEventListener('click', () => {
+        playClickSound();
+
+        let formatted_time = '';
+        if (activity_row.activity_time < 3600){
+            formatted_time = `${Math.floor(activity_row.activity_time/60).toString().padStart(1, '0')}:${(activity_row.activity_time%60).toString().padStart(2, '0')}`;
+        } else {
+            formatted_time = `${Math.floor(activity_row.activity_time/3600).toString().padStart(1, '0')}:${Math.floor((activity_row.activity_time%3600)/60).toString().padStart(2, '0')}:${(activity_row.activity_time%60).toString().padStart(2, '0')}`;
+        }
+
+        let dialog = document.getElementById('myModal');
+        document.getElementById('dialog_msg').innerText = formatToText(activity_row.activity_date);
+        document.getElementById('act_undo').style.display = 'none';
+        document.getElementById('pr_undo').style.display = 'none';
+        document.getElementById('input_pr_btn').style.display = 'none';
+        document.getElementById('data_table').style.display = 'table';
+
+        document.getElementById('data_table_dist').innerText = (Math.round(activity_row.distance * 10)/10).toString() + ' K';
+        document.getElementById('data_table_pace').innerText = activity_row.pace[0] === '0' ? activity_row.pace.slice(1) : activity_row.pace;
+        document.getElementById('data_table_time').innerText = formatted_time;
+
+        dialog.style.display = 'block';
+    });
     left_table.appendChild(table_row);
 }
 
@@ -1263,7 +1364,7 @@ function refreshLeftTab(){
             formattedPace = formattedPace.slice(1);
         }
 
-        addRowLeftPanel([counter.toString(16) + '.', (Math.round(row.distance * 10) / 10).toFixed(1) + ' K', formattedPace, formattedDate]);
+        addRowLeftPanel([counter.toString(16) + '.', (Math.round(row.distance * 10) / 10).toFixed(1) + ' K', formattedPace, formattedDate], activityHistoryData[i]);
 
         counter++;
     }

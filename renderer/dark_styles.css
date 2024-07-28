@@ -235,6 +235,7 @@ input:focus {
 
 #pr_table tr:hover {
     background-color: rgb(43, 43, 43);
+    cursor: pointer;
 }
 
 .left_cell1 {
@@ -275,6 +276,11 @@ input:focus {
 
 #left_table tr:hover {
     background-color: rgb(43, 43, 43);
+    cursor: pointer;
+}
+
+#data_table_heading {
+    color: gray;
 }
 
 .grayIcon::-webkit-calendar-picker-indicator {

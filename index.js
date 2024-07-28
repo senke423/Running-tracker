@@ -523,7 +523,8 @@ async function getPRdata(){
         let temp_el = {
             'cat_data': '',
             'time': '',
-            'pace': ''
+            'pace': '',
+            'pr_id': 0
         };
 
         let row = await get_query_data(sql, [pr_cat_data[i].pr_cat_id]);
@@ -533,6 +534,7 @@ async function getPRdata(){
             temp_el.cat_data = pr_cat_data[i];
             temp_el.time = 'n/a';
             temp_el.pace = 'n/a';
+            temp_el.pr_id = -1;
         } else {
             let formatted_time = '';
             if (row.pr_time < 3600){
@@ -546,6 +548,7 @@ async function getPRdata(){
             temp_el.cat_data = pr_cat_data[i];
             temp_el.time = formatted_time;
             temp_el.pace = formatted_pace;
+            temp_el.pr_id = row.pr_id;
         }
         
         formatted.push(temp_el);
@@ -582,6 +585,18 @@ async function initApp(){
         if (BrowserWindow.getAllWindows().length === 0){
             createMainWindow();
         }
+    });
+
+    ipcMain.handle('get-pr-date', async (event, argument) => {
+        return new Promise((resolve, reject) => {
+            db.all('SELECT pr_date FROM personal_record WHERE pr_id = ?', argument, (err, rows) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(rows);
+                }
+            });
+        });
     });
 
     ipcMain.handle('get_recent_activities', getRecentActivities);

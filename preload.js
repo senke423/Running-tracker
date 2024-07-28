@@ -7,5 +7,6 @@ contextBridge.exposeInMainWorld('ipcRenderer', {
     getPRdata: () => ipcRenderer.invoke('get-pr-data'),
     getUndoResponse: () => ipcRenderer.invoke('get-undo-response'),
     getJSONinfo: () => ipcRenderer.invoke('get-json-info'),
-    getUndoResponsePR: () => ipcRenderer.invoke('get-undo-response-pr')
+    getUndoResponsePR: () => ipcRenderer.invoke('get-undo-response-pr'),
+    getPRDate: (argument) => ipcRenderer.invoke('get-pr-date', argument)
 });
