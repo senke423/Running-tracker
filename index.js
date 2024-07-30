@@ -237,7 +237,7 @@ function createMainWindow() {
             nodeIntegration: false,
             contextIsolation: true,
         },
-        icon: path.join(__dirname, 'running_icon.png')
+        icon: path.join(__dirname, 'running_icon2.png')
     });
 
     // devtools

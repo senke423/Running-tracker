@@ -24,7 +24,7 @@
       "target": [
         "appImage"
       ],
-      "icon": "running_tracker.png"
+      "icon": "running_icon2.png"
     },
     "directories": {
       "output": "release-builds"
