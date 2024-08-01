@@ -908,7 +908,7 @@ function addChartData(row){
                 chart_data.time_data.monthly.y[activity_year].push(0);
             }
         } else {
-            for (let i = 0; i < findThisMondayDate().getMonth() + 1; i++){
+            for (let i = 0; i < new Date().getMonth() + 1; i++){
                 chart_data.distance_data.monthly.y[activity_year].push(0);
                 chart_data.time_data.monthly.y[activity_year].push(0);
             }
@@ -1034,6 +1034,8 @@ function styleChart(){
 
 function refreshChart(){
     styleChart();
+
+    console.log(chart_data.distance_data.monthly);
 
     // Show days of week instead of dates if 'This week' option is selected
     let now = new Date();
