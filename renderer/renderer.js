@@ -1333,7 +1333,7 @@ function refreshLeftTab(){
     left_table = document.createElement('table');
     left_table.id = 'left_table';
 
-    let counter = 1;
+    let counter = activityHistoryData.length;
     let iter_len = activityHistoryData.length;
     for (let i = 0; i < iter_len; i++){
         let row = activityHistoryData[i];
@@ -1366,9 +1366,9 @@ function refreshLeftTab(){
             formattedPace = formattedPace.slice(1);
         }
 
-        addRowLeftPanel([counter.toString(16) + '.', (Math.round(row.distance * 10) / 10).toFixed(1) + ' K', formattedPace, formattedDate], activityHistoryData[i]);
+        addRowLeftPanel([counter.toString(10) + '.', (Math.round(row.distance * 10) / 10).toFixed(1) + ' K', formattedPace, formattedDate], activityHistoryData[i]);
 
-        counter++;
+        counter--;
     }
 
     leftPanel.appendChild(left_table);
