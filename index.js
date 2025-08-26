@@ -85,6 +85,17 @@ async function get_table_data(){
     });
 }
 
+async function getActiveOnDate(date){
+    let sql = "SELECT * FROM activity WHERE activity_date = ?";
+
+    let row = await get_query_data(sql, [date]);
+
+    if (row.length > 0){
+        return true;
+    }
+    return false;
+}
+
 async function exportData(option){
     let desktop_path = path.join(os.homedir(), 'Desktop');
     let unix_time = Math.floor(Date.now() / 1000);
@@ -282,6 +293,7 @@ function readUserConfig(){
             }
     
             try {
+                // problem: user_config is sometimes corrupted.
                 user_config = JSON.parse(data);
                 dbPath = user_config.dbPath;
                 selectedTimeframe = user_config.selectedTimeframe;
@@ -603,6 +615,10 @@ async function initApp(){
 
     ipcMain.handle('get-pr-data', getPRdata);
 
+    ipcMain.handle('get-active-on-date', async (event, argument) => {
+        return getActiveOnDate(argument);
+    });
+
     ipcMain.handle('get-json-info', (event, ...args) => {
         return [selectedTimeframe, selectedDistance, darkMode];
     });
@@ -615,6 +631,8 @@ async function initApp(){
         
         let pr_description = data[0];
         let time = data[1];
+        let date = data[2];
+        console.log('the pr date will be: ' + date);
         let distance;
 
         get_pr_cat_id(pr_description)
@@ -623,8 +641,8 @@ async function initApp(){
 
             let pace = `${Math.floor((time/distance)/60).toString().padStart(2, '0')}:${Math.round((time/distance)%60).toString().padStart(2, '0')} /km`;
 
-            let now = new Date();
-            let date = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')}`;
+            //let now = new Date();
+            //let date = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')}`;
 
             if (last_pr_id == null){
                 last_pr_id = 1;

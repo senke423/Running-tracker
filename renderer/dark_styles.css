@@ -1,38 +1,99 @@
 @font-face {
-    font-family: "Kode Mono 400";
+    font-family: "Lexend";
     font-weight: 400;
-    src: url('./assets/fonts/KodeMono-Regular.woff2');
+    src: url('./assets/fonts/Lexend-Variable.woff2') format('woff2');
 }
 
 @font-face {
-    font-family: "Kode Mono 600";
-    font-weight: 600;
-    src: url('./assets/fonts/KodeMono-Medium.woff2');
+    font-family: "Staatliches";
+    font-weight: 400;
+    src: url('./assets/fonts/Staatliches-Regular.woff2') format('woff2');
 }
 
-.kode-mono-600 {
-  font-family: "Kode Mono 600", monospace;
+:root {
+    --bg: #03071e;
+    --fg: #11151c;
+    --accent-1: #f18805;
+    --accent-2: #255f85;
+    --btn-bg: var(--accent-2);
+    --btn-fg: rgb(255, 255, 255);
+    --btn-hover: #3c98d6;
+    --curr-time-color: rgb(134, 134, 134);
+    --ordinal-color: var(--accent-1);
+    --hover-color: #1a202b;
+    --pr-hover-accent: #1d2430;
+    --btn-active: #467fa5;
+    --btn-hover-bg: #1b4561;
+}
+
+.lexend-600 {
+  font-family: "Lexend";
   font-optical-sizing: auto;
   font-weight: 600;
   font-style: normal;
 }
 
-.kode-mono-400 {
-    font-family: "Kode Mono 400", monospace;
+.lexend-400 {
+    font-family: "Lexend";
     font-optical-sizing: auto;
     font-weight: 400;
     font-style: normal;
 }
 
+.month_table {
+    width: 100%;
+    margin-top: 1.5rem;
+}
+
+.month_table th {
+    color: white;
+}
+
+.month_table td {
+    color: rgb(70, 70, 70);
+    transition: color 1s;
+}
+
+.month_table td:hover {
+    color: white;
+    transition: color 0s;
+}
+
+.red_letter {
+    color: var(--accent-1);
+    color: #ff7378 !important;
+}
+
+.ran {
+    color: white !important;
+}
+
+.curr_date {
+    border: 1px solid rgb(63, 63, 63);
+    border-radius: 0.75rem;
+}
+
+.month_table th, .month_table td {
+    text-align: center;
+    vertical-align: middle;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+    padding: 0.5rem;
+}
+
+#discipline {
+    margin-left: 1rem;
+}
+
 body {
     margin-top: 3rem;
     margin-right: 5rem;
-    font-family: "Kode Mono 400", monospace;
+    font-family: "Lexend", monospace;
     font-optical-sizing: auto;
     font-weight: 400;
     font-style: normal;
     user-select: none;
-    background-color: #181818;
+    background-color: var(--bg);
 }
 
 .margin80 {
@@ -46,7 +107,7 @@ h1 {
 }
 
 #curr_time {
-    color: rgb(63, 63, 63);
+    color: var(--curr-time-color);
     user-select: none;
 }
 
@@ -55,7 +116,7 @@ label {
 }
 
 input {
-    background-color: #181818;
+    background-color: var(--bg);
     color: white;
     border: none;
     padding: 8px;
@@ -67,7 +128,7 @@ input:focus {
 }
 
 #distance, #running_time, #custom_date {
-    font-family: "Kode Mono 400", monospace;
+    font-family: "Lexend", monospace;
     font-optical-sizing: auto;
     font-weight: 400;
     font-style: normal;
@@ -85,22 +146,22 @@ input:focus {
 }
 
 #enter_btn, #undo_btn {
-    font-family: "Kode Mono 400", monospace;
+    font-family: "Lexend", monospace;
     font-optical-sizing: auto;
     font-weight: 400;
     font-style: normal;
     text-align: center;
-    background-color: rgb(0, 61, 61);
-    color: aqua;
+    background-color: var(--btn-bg);
+    color: var(--btn-fg);
 }
 
 #enter_btn, #undo_btn {
-    border: 1px solid rgba(0, 255, 255, 0);
+    border: 1px solid rgba(0, 0, 0, 0);
     height: 2rem;
 }
 
 #enter_btn:hover, #undo_btn:hover {
-    border: 1px solid aqua;
+    border: 1px solid var(--btn-hover);
 }
 
 #enter_btn:active {
@@ -120,7 +181,7 @@ input:focus {
     padding: 15px;
     border-radius: 15px;
     box-shadow: 0 0 20px #000000;
-    background-color: rgb(40, 40, 40);
+    background-color: var(--fg);
 }
 
 
@@ -136,7 +197,7 @@ input:focus {
 
 #last_act_dist {
     color: black;
-    font-family: "Kode Mono 600", monospace;
+    font-family: "Lexend", monospace;
     font-optical-sizing: auto;
     font-weight: 600;
     font-style: normal;
@@ -180,7 +241,7 @@ input:focus {
     font-size: 12pt;
     background-color: #00000000;
     padding-right: 10px;
-    font-family: "Kode Mono 600", monospace;
+    font-family: "Lexend", monospace;
     font-optical-sizing: auto;
     font-weight: 600;
     font-size: 12pt;
@@ -199,7 +260,7 @@ input:focus {
 .txtBoxIn::placeholder {
     padding-right: 10px;
     color: white;
-    font-family: "Kode Mono 600", monospace;
+    font-family: "Lexend", monospace;
     font-optical-sizing: auto;
     font-weight: 600;
     font-size: 12pt;
@@ -215,7 +276,7 @@ input:focus {
 }
 
 .pr_cell2:hover {
-    background-color: rgba(255, 255, 255, 0.034);
+    background-color: var(--pr-hover-accent);
 }
 
 .pr_cell3 {
@@ -234,12 +295,12 @@ input:focus {
 }
 
 #pr_table tr:hover {
-    background-color: rgb(43, 43, 43);
+    background-color: var(--hover-color);
     cursor: pointer;
 }
 
 .left_cell1 {
-    color: rgb(82, 82, 82);
+    color: var(--ordinal-color);
     width: 10%;
     padding-left: 15px;
 }
@@ -248,7 +309,7 @@ input:focus {
     color: white;
     text-align: right;
     width: 20%;
-
+    font-weight: 600;
 }
 
 .left_cell3 {
@@ -275,7 +336,7 @@ input:focus {
 }
 
 #left_table tr:hover {
-    background-color: rgb(43, 43, 43);
+    background-color: var(--hover-color);
     cursor: pointer;
 }
 
@@ -311,7 +372,7 @@ input:focus {
     margin-top: 20px;
     margin-bottom: 10px;
     margin-left: 15px;
-    background-color: rgb(40, 40, 40);
+    background-color: var(--fg);
     border-radius: 15px;
     display: flex;
     overflow: visible;
@@ -450,13 +511,13 @@ p, li {
 }
 
 .selected {
-    background-color: rgb(50, 42, 99);
+    background-color: var(--accent-1);
     color: white;
     font-weight: 600;
 }
 
 .selected2 {
-    background-color: rgb(139, 46, 139);
+    background-color: var(--accent-2);
     color: white;
     font-weight: 600;
 }
@@ -530,30 +591,30 @@ p, li {
 }
 
 #act_undo {
-    font-family: "Kode Mono 400", monospace;
+    font-family: "Lexend", monospace;
     font-optical-sizing: auto;
     font-weight: 400;
     font-style: normal;
     text-align: center;
-    background-color: rgb(0, 61, 61);
-    color: aqua;
+    background-color: var(--btn-bg);
+    color: var(--btn-fg);
     margin-right: 30px;
 }
 
 #pr_undo, #input_pr_btn {
-    font-family: "Kode Mono 400", monospace;
+    font-family: "Lexend", monospace;
     font-optical-sizing: auto;
     font-weight: 400;
     font-style: normal;
     text-align: center;
-    background-color: rgb(0, 61, 61);
-    color: aqua;
+    background-color: var(--btn-bg);
+    color: var(--btn-fg);
 }
 
 #act_undo:hover, #pr_undo:hover, #input_pr_btn:hover {
-    background-color: rgb(0, 70, 70);
+    background-color: var(--btn-hover-bg);
 }
 
 #act_undo:active, #pr_undo:active, #input_pr_btn:active {
-    background-color: rgb(0, 80, 80);
+    background-color: var(--btn-active);
 }

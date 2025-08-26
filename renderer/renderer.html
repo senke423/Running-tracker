@@ -5,21 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Trčanje</title>
     <link id="display_mode" rel="stylesheet" href="">
-    
 </head>
 <body>
     <style>
         @font-face {
-            font-family: "Kode Mono 400";
+            font-family: "Lexend";
             font-weight: 400;
-            src: url('./assets/fonts/KodeMono-Regular.woff2');
+            src: url('./assets/fonts/Lexend-Variable.woff2')
         }
-
         body {
             margin-top: 3rem;
-            /* margin-left: 80px; */
             margin-right: 5rem;
-            font-family: "Kode Mono 400", monospace;
+            font-family: "Lexend", sans-serif;
             font-optical-sizing: auto;
             font-weight: 400;
             font-style: normal;
@@ -43,7 +40,7 @@
             background: rgb(255, 91, 32);
             color: white;
             transition: 1s 0.4s;
-            font-family: 'Kode Mono 400';
+            font-family: 'Lexend';
             font-size: 24pt;
 
             animation: 1s ease;
@@ -71,9 +68,9 @@
                 </tr>
             </table>
             <div id="button_menu">
-                <button id="act_undo">&gt; Briši akt. &lt;</button>
-                <button id="pr_undo">&gt; Briši PR &lt;</button>
-                <button id="input_pr_btn">&gt; Dap &lt;</button>
+                <button id="act_undo">&nbsp; Briši akt. &nbsp;</button>
+                <button id="pr_undo">&nbsp; Briši PR &nbsp;</button>
+                <button id="input_pr_btn">&nbsp; Dap &nbsp;</button>
             </div>
         </div>
     </div>
@@ -83,16 +80,16 @@
 
     <script src="../node_modules/chart.js/dist/chart.umd.js"></script>
 
-    <h1 class="kode-mono-600 margin80">Trčanje <span id="curr_time">time</span> <span id="msg"></span></h1>
+    <h1 class="lexend-600 margin80" style="font-family: 'Staatliches'">🏃&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span id="curr_time">time</span> <span id="msg"></span></h1>
 
-    <label class="margin80" for="distance" style="user-select: none;">Razdaljina:</label>
+    <label class="margin80" for="distance" style="user-select: none;">Razdaljina</label>
     <input type="number" id="distance" name="distance" step="0.1" min="0" max="1000" placeholder="0.0">
     
-    <label for="running_time" style="margin-left: 1.5rem; user-select: none;">Vreme:</label>
+    <label for="running_time" style="margin-left: 1.5rem; user-select: none;">Vreme</label>
     <input type="text" id="running_time" name="running_time" placeholder="hh:mm:ss">
 
-    <button id="enter_btn" type="button">&gt; Unesi &lt;</button>
-    <button id="undo_btn" type="button">&gt; Undo &lt;</button>
+    <button id="enter_btn" type="button">&nbsp; Unesi &nbsp;</button>
+    <button id="undo_btn" type="button">&nbsp; Undo &nbsp;</button>
 
     <div id="date_picker">
         <label id="custom_date_label" for="custom_date" style="margin-left: 1.5rem">Nije bilo danas?</label>
@@ -111,23 +108,23 @@
         <div id="big_right" class="column">
             <table>
                 <tr>
-                    <td class="text_column">Ukupno pretrčano: </td>
+                    <td class="text_column">Ukupno pretrčano </td>
                     <td class="data_column" id="total_ran"></td>
                 </tr>
                 <tr>
-                    <td class="text_column">Ukupno vremena uloženo: </td>
+                    <td class="text_column">Ukupno vremena uloženo </td>
                     <td class="data_column" id="total_time"></td>
                 </tr>
                 <tr>
-                    <td class="text_column">Najbrži tempo ikad: </td>
+                    <td class="text_column">Najbrži tempo ikad </td>
                     <td class="data_column" id="fastest_pace_ever"></td>
                 </tr>
                 <tr>
-                    <td class="text_column">Pretrčano ove nedelje: </td>
+                    <td class="text_column">Pretrčano ove nedelje </td>
                     <td class="data_column" id="ran_this_week"></td>
                 </tr>
                 <tr>
-                    <td class="text_column">Najbrži tempo ove nedelje: </td>
+                    <td class="text_column">Najbrži tempo ove nedelje </td>
                     <td class="data_column" id="fastest_pace_this_week"></td>
                 </tr>
             </table>
@@ -143,7 +140,29 @@
             <br>
             <div id="timeDistanceSelect"><div class="selected2" id="distanceOption">Razdaljina</div><div class="unselected" id="timeOption">Vreme</div></div>
 
-            <select id="yearSelect" class="kode-mono-400"></select>
+            <select id="yearSelect" class="lexend-400"></select>
+
+            <table class="month_table" id="calendar">
+                <tr>
+                    <th>P</th>
+                    <th>U</th>
+                    <th>S</th>
+                    <th>Č</th>
+                    <th>P</th>
+                    <th class="red_letter">S</th>
+                    <th class="red_letter">N</th>
+                </tr>
+                <tr>
+                    <td>g</td>
+                    <td>l</td>
+                    <td>u</td>
+                    <td>p</td>
+                    <td>o</td>
+                    <td>s</td>
+                    <td>t</td>
+                </tr>
+            </table>
+            <p id="discipline">Unexpected error on load.</p>
         </div>
     </div>
 </body>

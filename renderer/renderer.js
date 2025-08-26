@@ -256,7 +256,7 @@ window.onload = async function() {
 
         window.ipcRenderer.send('newActivity', data);
 
-        tryToEnterNewPR(time_string, distance);
+        tryToEnterNewPR(time_string, distance, date);
 
         selected_year = new Date().getFullYear();
         playSuccessSound();
@@ -515,7 +515,15 @@ window.onload = async function() {
             msg_element.innerText = '';
         }, 1000);
 
-        window.ipcRenderer.send('newPR', [pr_description, time]);
+        let now = new Date();
+        let date = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')}`;
+        let date_string = document.getElementById('custom_date').value;
+        
+        if (date_string !== ''){
+            date = date_string;
+        }
+
+        window.ipcRenderer.send('newPR', [pr_description, time, date]);
 
         refreshRightTab();
         closeDialog();
@@ -558,7 +566,7 @@ window.onload = async function() {
     fadeOutEffect();
 }
 
-function tryToEnterNewPR(time_string, distance){
+function tryToEnterNewPR(time_string, distance, date){
     let time = 0;
     let regexPattern = /^(?:(\d{1,2}):)?(\d{1,2}):(\d{1,2})$/;
     let match = time_string.match(regexPattern);
@@ -615,7 +623,7 @@ function tryToEnterNewPR(time_string, distance){
         return;
     }
 
-    window.ipcRenderer.send('newPR', [pr_description, time]);
+    window.ipcRenderer.send('newPR', [pr_description, time, date]);
 
     refreshRightTab();
 }
@@ -707,6 +715,7 @@ function refreshTabs(){
     refreshLeftTab();
     refreshRightTab();
     refreshChart();
+    refreshCalendar();
     updateStats();
     thisMonday = findThisMonday();
     thisSunday = findThisSunday();
@@ -957,6 +966,17 @@ function dateToString(date){
     return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
 }
 
+const colors = {
+    dark_fg: '#11151c',
+    dark_chart_color: '#f18805',
+    dark_gridline_color: '#353535',
+    dark_data_color: '#f18805',
+    light_fg: 'white',
+    light_chart_color: '',
+    light_gridline_color: '#eeeeee',
+    light_data_color: 'orangered'
+}
+
 function styleChart(){
     // destroy instance of chart if it exists, and then create a new one
     if (running_chart){
@@ -964,9 +984,9 @@ function styleChart(){
     }
 
     // selected_mode == true -> DARK MODE
-    const bckg_color = selected_mode ? 'rgb(40, 40, 40)' : 'white'; 
+    const bckg_color = selected_mode ? colors.dark_fg : colors.light_fg; 
     const dataset_text = selected_distance ? 'Razdaljina [km]' : 'Vreme [h]';
-    const gridline_color = selected_mode ? '#353535' : '#eeeeee';
+    const gridline_color = selected_mode ? colors.dark_gridline_color : colors.light_gridline_color;
     const tick_color = selected_mode ? '#c0c0c0' : 'black';
     const title_color = selected_mode ? 'white' : 'black';
 
@@ -996,7 +1016,7 @@ function styleChart(){
                 legend: {
                     labels: {
                         font: {
-                            family: 'Courier New'
+                            family: 'Lexend'
                         },
                         color: title_color
                     }
@@ -1011,7 +1031,7 @@ function styleChart(){
                     ticks: {
                         color: tick_color,
                         font: {
-                            family: 'Courier New'
+                            family: 'Lexend'
                         }
                     }
                 },
@@ -1022,7 +1042,7 @@ function styleChart(){
                     ticks: {
                         color: tick_color,
                         font: {
-                            family: 'Courier New'
+                            family: 'Lexend'
                         }
                     }
                 }
@@ -1077,9 +1097,9 @@ function refreshChart(){
 
     if (selected_mode){
         // DARK MODE
-        running_chart.data.datasets[0].backgroundColor = 'rgb(139, 46, 139)';
+        running_chart.data.datasets[0].backgroundColor = colors.dark_data_color;
     } else {
-        running_chart.data.datasets[0].backgroundColor = 'orangered';
+        running_chart.data.datasets[0].backgroundColor = colors.light_data_color;
     }
 
 
@@ -1142,6 +1162,62 @@ function refreshChart(){
     running_chart.data.datasets[0].data = yVals;
 
     running_chart.update();
+}
+
+function areDatesEqual(date1, date2){
+    if (date1.getFullYear() == date2.getFullYear() && date1.getMonth() == date2.getMonth() && date1.getDate() == date2.getDate())
+        return true;
+    return false;
+}
+
+async function refreshCalendar(){
+    let date = new Date();
+    let this_no_of_days = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+    date.setMonth(date.getMonth() - 1);
+    let prev_no_of_days = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+    date.setMonth(date.getMonth() + 1);
+
+    date = new Date(date.getFullYear(), date.getMonth(), 1);
+    let first_day = (date.getDay() + 6) % 7;
+
+    let iter = date;
+    iter.setDate(iter.getDate() - first_day);
+
+    let no_of_weeks = Math.ceil((first_day + this_no_of_days)/7);
+    let table = document.getElementById('calendar');
+    let cnt = 0;
+    let now = new Date();
+    let total = now.getDate() + first_day;
+
+    // clear table if it already has rows
+    if (table.rows.length > 1) {
+        for (let x = 1; x < table.rows.length; x++){
+            table.deleteRow(x);
+        }
+    }
+    
+    for (let i = 0; i < no_of_weeks; i++){
+        let new_row = table.insertRow();
+
+        for (let j = 0; j < 7; j++){
+            let new_cell = new_row.insertCell(j);
+            
+            if (await window.ipcRenderer.getActiveOnDate(dateToString(iter)) == true){
+                new_cell.className += " ran";
+                cnt++;
+            }
+            if (areDatesEqual(now, iter)){
+                new_cell.className += " curr_date";
+            }
+
+            new_cell.innerText = iter.getDate();
+
+            iter.setDate(iter.getDate() + 1);
+        }
+    }
+
+    let discipline_meter = document.getElementById('discipline');
+    discipline_meter.innerText = cnt.toString() + "/" + total.toString() + " (" + Math.ceil((cnt/total)*100) + "%)";
 }
 
 async function input_new_pr(){
@@ -1227,7 +1303,7 @@ async function refreshRightTab(){
 
     pr_input_cnt = 1;
     let rightPanel = document.getElementById('right');
-    rightPanel.innerHTML = '<p style="margin-top: 0">PR-ovi:</p>';
+    rightPanel.innerHTML = '<p style="margin-top: 0; margin-bottom: 0; font-family: \'Staatliches\'; font-size: 2rem">Rekordi</p>';
     
     html_table = document.createElement('table');
     html_table.id = 'pr_table';
@@ -1328,7 +1404,7 @@ function addRowLeftPanel(columns, activity_row){
 
 function refreshLeftTab(){
     let leftPanel = document.getElementById('left');
-    leftPanel.innerHTML = '<p style="margin-top: 0">Istorija aktivnosti:</p>';
+    leftPanel.innerHTML = '<p style="margin-top: 0; margin-bottom: 0; font-family: \'Staatliches\'; font-size: 2rem">Istorija aktivnosti</p>';
 
     left_table = document.createElement('table');
     left_table.id = 'left_table';

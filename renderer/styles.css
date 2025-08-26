@@ -1,34 +1,78 @@
 @font-face {
-    font-family: "Kode Mono 400";
+    font-family: "Lexend";
     font-weight: 400;
-    src: url('./assets/fonts/KodeMono-Regular.woff2');
+    src: url('./assets/fonts/Lexend-Variable.woff2') format('woff2');
 }
 
 @font-face {
-    font-family: "Kode Mono 600";
-    font-weight: 600;
-    src: url('./assets/fonts/KodeMono-Medium.woff2');
+    font-family: "Staatliches";
+    font-weight: 400;
+    src: url('./assets/fonts/Staatliches-Regular.woff2') format('woff2');
 }
 
-.kode-mono-600 {
-  font-family: "Kode Mono 600", monospace;
+.lexend-600 {
+  font-family: "Lexend";
   font-optical-sizing: auto;
   font-weight: 600;
   font-style: normal;
 }
 
-.kode-mono-400 {
-    font-family: "Kode Mono 400", monospace;
+.lexend-400 {
+    font-family: "Lexend";
     font-optical-sizing: auto;
     font-weight: 400;
     font-style: normal;
 }
 
+.month_table {
+    width: 100%;
+    margin-top: 1.5rem;
+}
+
+.curr_date {
+    border: 1px solid rgb(172, 172, 172);
+    border-radius: 0.75rem;
+}
+
+.month_table th {
+    color: black;
+}
+
+.month_table td {
+    color: rgb(182, 182, 182);
+    transition: color 1s;
+}
+
+.month_table td:hover {
+    color: black;
+    transition: color 0s;
+}
+
+.red_letter {
+    color: var(--accent-1);
+    color: #ff7378 !important;
+}
+
+.ran {
+    color: black !important;
+}
+
+.month_table th, .month_table td {
+    text-align: center;
+    vertical-align: middle;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+    padding: 0.5rem;
+}
+
+#discipline {
+    margin-left: 1rem;
+}
+
 body {
     margin-top: 3rem;
-    /* margin-left: 80px; */
     margin-right: 5rem;
-    font-family: "Kode Mono 400", monospace;
+    font-family: "Lexend", monospace;
     font-optical-sizing: auto;
     font-weight: 400;
     font-style: normal;
@@ -51,7 +95,7 @@ h1 {
 }
 
 #distance, #running_time, #custom_date {
-    font-family: "Kode Mono 400", monospace;
+    font-family: "Lexend", monospace;
     font-optical-sizing: auto;
     font-weight: 400;
     font-style: normal;
@@ -69,7 +113,7 @@ h1 {
 }
 
 #enter_btn, #undo_btn {
-    font-family: "Kode Mono 400", monospace;
+    font-family: "Lexend", monospace;
     font-optical-sizing: auto;
     font-weight: 400;
     font-style: normal;
@@ -113,7 +157,7 @@ h1 {
 
 #last_act_dist {
     color: black;
-    font-family: "Kode Mono 600", monospace;
+    font-family: "Lexend", monospace;
     font-optical-sizing: auto;
     font-weight: 600;
     font-style: normal;
@@ -195,7 +239,7 @@ h1 {
     font-size: 12pt;
     background-color: #ffffff00;
     padding-right: 10px;
-    font-family: "Kode Mono 600", monospace;
+    font-family: "Lexend", monospace;
     font-optical-sizing: auto;
     font-weight: 600;
     font-size: 12pt;
@@ -214,7 +258,7 @@ h1 {
 .txtBoxIn::placeholder {
     padding-right: 10px;
     color: black;
-    font-family: "Kode Mono 600", monospace;
+    font-family: "Lexend", monospace;
     font-optical-sizing: auto;
     font-weight: 600;
     font-size: 12pt;
@@ -263,7 +307,7 @@ h1 {
     color: black;
     text-align: right;
     width: 20%;
-
+    font-weight: 600;
 }
 
 .left_cell3 {
@@ -510,7 +554,7 @@ input {
 }
 
 #act_undo {
-    font-family: "Kode Mono 400", monospace;
+    font-family: "Lexend", monospace;
     font-optical-sizing: auto;
     font-weight: 400;
     font-style: normal;
@@ -521,7 +565,7 @@ input {
 }
 
 #pr_undo, #input_pr_btn {
-    font-family: "Kode Mono 400", monospace;
+    font-family: "Lexend", monospace;
     font-optical-sizing: auto;
     font-weight: 400;
     font-style: normal;
