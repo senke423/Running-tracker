@@ -431,6 +431,7 @@ td {
     font-size: 9pt;
     margin-top: 35px;
     margin-left: 30px;
+    user-select: text;
 }
 
 #left, #right {
@@ -477,7 +478,7 @@ td {
     width: 100px;
     color: rgb(218, 218, 218);
     padding: 10px;
-    background-color: #252525;
+    background-color: var(--fg);
     border: none;
 }
 
@@ -486,14 +487,14 @@ td {
 }
 
 #radioSelect {
-    background-color: #2b2b2b;
+    background-color: var(--fg);
     border-radius: 10px;
     width: 100%;
     display: flex;
 }
 
 #timeDistanceSelect {
-    background-color: #2b2b2b;
+    background-color: var(--fg);
     border-radius: 10px;
     width: 100%;
     display: flex;
@@ -518,7 +519,7 @@ p, li {
 .unselected {
     font-weight: 400;
     color: rgb(161, 161, 161);
-    background-color: #ffffff00;
+    background-color: var(--fg);
 }
 
 .unselected:hover {
