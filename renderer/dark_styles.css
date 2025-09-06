@@ -136,6 +136,24 @@ input:focus {
     user-select: all;
 }
 
+#credits_list li {
+    width: 50%;
+    margin-bottom: 0.75rem;
+}
+
+#feature_list li {
+    width: 50%;
+    text-align: justify;
+    text-justify: inter-word;
+    list-style:disc;
+    margin-bottom: 0.75rem;
+}
+
+#feature_list li:hover, #credits_list li:hover {
+    color: rgb(192, 192, 192);
+    cursor: pointer;
+}
+
 #running_time {
     width: 6rem;
     margin-right: 1.5rem;
