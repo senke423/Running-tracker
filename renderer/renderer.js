@@ -1055,8 +1055,6 @@ function styleChart(){
 function refreshChart(){
     styleChart();
 
-    console.log(chart_data.distance_data.monthly);
-
     // Show days of week instead of dates if 'This week' option is selected
     let now = new Date();
     
@@ -1190,11 +1188,15 @@ async function refreshCalendar(){
     let total = now.getDate() + first_day;
 
     // clear table if it already has rows
-    if (table.rows.length > 1) {
-        for (let x = 1; x < table.rows.length; x++){
-            table.deleteRow(x);
-        }
-    }
+    table.innerHTML = `<tr>
+                    <th>P</th>
+                    <th>U</th>
+                    <th>S</th>
+                    <th>Č</th>
+                    <th>P</th>
+                    <th class="red_letter">S</th>
+                    <th class="red_letter">N</th>
+                </tr>`;
     
     for (let i = 0; i < no_of_weeks; i++){
         let new_row = table.insertRow();
